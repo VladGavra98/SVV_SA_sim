@@ -30,6 +30,39 @@ def drawSection(ha,ca):
     ax.add_collection(lc)
     ax.autoscale()
 
+def calcStPose(ha,ca,nst):
+    """Calculates the (y,z) position of the stringers.
+    Input: height aileron, chord, number stringers
+    Output: 2xnst array with the (y,z) coordinates"""
+
+    if(nst <=0 or nst%2==0):
+        print("Invalid input entered!")
+        return 0
+    pos = np.zeros((2,nst))
+    #pos[:,int(nst/2)+1] = [0,0]
+    semiCircum = calcCircum(ha,ca)/2
+
+    unit     = semiCircum/ (int(nst/2) +1)
+    stCircle = int((ha/2 * np.pi/2 / unit))
+
+    #Going around the semic cirle
+    for i in range(1,stCircle+1):
+        pos[:,int(nst/2)+1 - i - 1] = [ha/2 * np.sin(np.radians(i*unit/(ha/2))),-ha/2 * np.cos(np.radians(i*unit/(ha/2)))]
+        pos[:,int(nst/2)+1 + i -1 ] = [-ha/2 * np.sin(np.radians(i*unit/(ha/2))),-ha/2 * np.cos(np.radians(i*unit/(ha/2)))]
+     #Going along the skin
+    if (2*stCircle +1 < nst):
+        left   = unit - (ha/2 * np.pi/2 - stCircle*unit)    #left distance from the unit
+        leftSt = int(nst/2) - stCircle     #nr of stringers left to palce outside the circle
+        alfa   = np.arctan2(ha/2,ca-ha/2)   #the slope angle of the straight part
+        lineSt = int((semiCircum - (ha/2 * np.pi/2) - left)/leftSt)
+        leftTE = semiCircum- (ha/2 * np.pi/2)- lineSt*unit
+        for i in range(leftSt):
+             pos[:,i]  = [(leftTE+unit*i)*np.sin(alfa),-ca + (leftTE+unit*i)*np.sin(alfa)]
+             pos[:,len(pos[1,:])-i-1] = [-(leftTE+unit*i)*np.sin(alfa),-ca + (leftTE+unit*i)*np.sin(alfa)]
+        return pos
+    else:
+        return pos[1]
+
 def calcCircum(ha,ca):
     #Stick to the name given in the flow chart OR
     # cleary write what you cahnged
@@ -54,9 +87,10 @@ class Aircraft:
 
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
+    np.set_printoptions(precision=3)
     craft = Aircraft("A320")
     print("Circumference: \n",calcCircum(craft.ha,craft.ca))
-    drawSection(craft.ha,craft.ca)
+    print("Stringer positions are:\n",calcStPose(craft.ha,craft.ca,1))
 
 
 if __name__ == "__main__":
