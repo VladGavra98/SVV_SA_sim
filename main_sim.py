@@ -50,6 +50,9 @@ class Aircraft:
             self.hst = 0.002
             self.nst = 17
 
+def calcStArea(Tst, Hst, Wst): #Calculates area of stringer in m^2
+    StArea = Tst * (Hst + Wst)
+    return StArea
 
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
@@ -60,3 +63,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+
