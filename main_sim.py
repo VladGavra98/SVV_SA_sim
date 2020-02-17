@@ -71,22 +71,44 @@ def calcCircum(ha,ca):
     """
     return np.pi*ha/2 + 2*(np.sqrt((ca-ha/2)**2 + (ha/2)**2))
 
-class Aircraft:
-    def __init__(self,name):
-        if name=="A320" or name=="a320":
-            self.la  = 2.771          #m
-            self.ca  = 0.547
-            self.ha  = 0.225
-            self.tsk = 0.00011
-            self.tst = 0.00012
-            self.wst = 0.002
-            self.hst = 0.0015
-            self.nst = 17
-            self.tsp = 0.00029
-            self.theta = np.radians(26)  #rad
 
+
+
+def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
+    
+    #Length of the straight skin
+    Lsk = np.linalg.norm([H/2,Ca-H/2])
+    
+    
+    # ------------------------   Izz   ------------------------
+    # I_zz consists of 4 parts: spar (1), skin plates (2), skin semicircular (3), stiffeners (4)
+    
+    I_zz1 = 1/12*Tsp*H**3
+    Beta_plate = atan((H/2)/(Ca-H/2))
+    I_zz2 = 1/12*Tsk*(2*Lsk)**3*(sin(Beta_plate))**2
+    I_zz3 = 1/128*pi*Tsk**4 
+    I_zz4 = Ast*sum(StPos[0,:]**2) #calcStPos gives list of coordinates (y,z)
+    
+    Izz = I_zz1+I_zz2+I_zz3+I_zz4
+    
+    # ------------------------   Iyy   -------------------------
+    # I_yy consists of 4 parts: skin plates (1), skin semicircular (2), stiffeners (3), spar (4)
+    # the MoI of the thinwalled semicircle about diameter is r^3*t*pi/4 (calculated by hand)
+    # the MoI of the thinwalled semicircle about cg is r^3*t*(pi/4 - 4/pi) (calculated by hand)
+    
+    I_yy_plate = 1/12*Tsk*(Lsk)**3*(cos(Beta_plate))**2 + Lsk*Tsk*(H/2+0.5*(Ca-H/2)-Zcg)**2
+    I_yy1 = 2*I_yy_plate
+    I_yy2 = (H/2)**3*Tsk*(pi/4 - 4/pi) + pi*H/2*Tsk * ((H/2-H/pi)-Zcg)**2
+    I_yy3 = Ast*sum((z-Zcg)**2 for z in StPos[1,:])   #calcStPos gives list of coordinates (y,z)
+    I_yy4 = H*Tsp*(H/2-Zcg)**2                      #only steiner term due to thin walled approx
+    
+    Iyy = I_yy1+I_yy2+I_yy3+I_yy4
+        
+    return Izz, Iyy
+
+  
+  #+++++++++++++++++++++++++++++++++++++ Numerical Integration ++++++++++++++++++++++++++++++++++++++++++++++++++
 def integration(function,n,a,b):
-	
 	z0 = a
 	zf = b
 	n = n
@@ -127,12 +149,29 @@ def integration(function,n,a,b):
 	
 	return weights,total
 
+
+
 def calcStArea(Tst, Hst, Wst): 
   #Calculates area of stringer in m^2
     StArea = Tst * (Hst + Wst)
     return StArea
   
+class Aircraft:
+    def __init__(self,name):
+        if name=="A320" or name=="a320":
+            self.la  = 2.771          #m
+            self.ca  = 0.547
+            self.ha  = 0.225
+            self.tsk = 0.00011
+            self.tst = 0.00012
+            self.wst = 0.002
+            self.hst = 0.0015
+            self.nst = 17
+            self.tsp = 0.00029
+            self.theta = np.radians(26)  #rad
+            
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
+
 def main():
     np.set_printoptions(precision=3)
     craft = Aircraft("A320")
