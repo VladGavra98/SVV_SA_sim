@@ -41,21 +41,22 @@ def calcCircum(ha,ca):
 class Aircraft:
     def __init__(self,name):
         if name=="A320" or name=="a320":
-            self.la = 2.71 #m
-            self.ca = 0.5
-            self.ha = 0.2
+            self.la  = 2.771          #m
+            self.ca  = 0.547
+            self.ha  = 0.225
             self.tsk = 0.00011
-            self.tsp = 0.0002
+            self.tst = 0.00012
             self.wst = 0.002
-            self.hst = 0.002
+            self.hst = 0.0015
             self.nst = 17
-
+            self.tsp = 0.00029
+            self.theta = np.radians(26)  #rad
 
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
-    aircraft = Aircraft("A320")
-    print("Circumference: \n",calcCircum(aircraft.ha,aircraft.ca))
-    drawSection(aircraft.ha,aircraft.ca)
+    craft = Aircraft("A320")
+    print("Circumference: \n",calcCircum(craft.ha,craft.ca))
+    drawSection(craft.ha,craft.ca)
 
 
 if __name__ == "__main__":
