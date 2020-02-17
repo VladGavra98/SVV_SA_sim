@@ -11,6 +11,9 @@ import scipy as sp
 import scipy.integrate
 import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
+
+
+#++++++++++++++++++++++++++ Constants +++++++++++++++++++++++++++++++++++++++++++++++++++
 aircraft = "A320"
 
 
