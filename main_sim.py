@@ -18,7 +18,7 @@ g = 9.81 #m/s2
 
 
 def drawSection(ha,ca):
-    """Plots the corss-section."""
+    """Plots the cross-section."""
     fig,ax = plt.subplots()
     plt.title("Cross section")
     lines = [[(0, 0), (ha/2, ha/2)], [(0, 0), (ha/2, -ha/2)], [(ha/2, ha/2), (ha/2, -ha/2)],
