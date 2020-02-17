@@ -85,6 +85,10 @@ class Aircraft:
             self.tsp = 0.00029
             self.theta = np.radians(26)  #rad
 
+def calcStArea(Tst, Hst, Wst): 
+  #Calculates area of stringer in m^2
+    StArea = Tst * (Hst + Wst)
+    return StArea
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
     np.set_printoptions(precision=3)
@@ -95,3 +99,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+
