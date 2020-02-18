@@ -12,6 +12,7 @@ import scipy.integrate
 import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
 plt.close('all')
+np.set_printoptions(precision=3)
 
 #++++++++++++++++++++++++++ Constants +++++++++++++++++++++++++++++++++++++++++++++++++++
 g = 9.81 #m/s2
@@ -101,6 +102,7 @@ def calcIntegralArray(z,y,s, n):
 
 
 def addStringerContribution(integrated,yVec,zVec,ds,n,stringerPos,stArea,direction):
+    """Used in shear flow calculations"""
     used = np.array([])
     newIntegrated = integrated
     for i in range(0,n+1):
@@ -118,10 +120,11 @@ def addStringerContribution(integrated,yVec,zVec,ds,n,stringerPos,stArea,directi
     return newIntegrated
 
 def calcDist(y1,z1,y2,z2):
+    """Euclidean norm"""
     return np.sqrt(np.power(y1-y2, 2) + np.power(z1-z2, 2))
 
 
-def drawSection(ha,ca,stringer_pos):
+def drawSection(ha,ca,stringer_posz,stringer_posy): #Verified by Vlad!
     """Plots the cross-section."""
     fig,ax = plt.subplots()
     plt.title("Cross section")
@@ -133,11 +136,11 @@ def drawSection(ha,ca,stringer_pos):
     circle = plt.Circle((ha/2,0),ha/2,color='b',fill=False)
     ax.add_artist(circle)
     ax.add_collection(lc)
-    plt.scatter(stringer_pos[1,:],stringer_pos[0,:])
+    plt.scatter(stringer_posz,stringer_posy)
     ax.autoscale()
 
 #++++++++++++++++++++ Stringer Position (from TE to LE and back in c.c. order)++++++++++
-def calcStPose(ha,ca,nst):
+def calcStPose(ha,ca,nst):   #Verified by Vlad!
     """Calculates the (y,z) position of the stringers.
     Input: height aileron, chord, number stringers
     Output: 2xnst array with the (y,z) coordinates"""
@@ -145,6 +148,7 @@ def calcStPose(ha,ca,nst):
     if(nst <=0 or nst%2==0):
         print("Invalid input entered!")
         return 0
+
     pos = np.zeros((2,nst))
     #pos[:,int(nst/2)+1] = [0,0]
     semiCircum = calcCircum(ha,ca)/2
@@ -184,19 +188,24 @@ def calcCircum(ha,ca):
     return np.pi*ha/2 + 2*(np.sqrt((ca-ha/2)**2 + (ha/2)**2))
 
 
-def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):
+def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):  #Verified by Vlad!
+    """Return the z coordinate of the centroid."""
     stArea = calcStArea(tst,hst,wst)
-    stPos = calcStPose(ha,ca,nst)
+    stPos  = calcStPose(ha,ca,nst)
+
     plateYLength = ha / 2
     plateZLength = ca - ha / 2
-    sumStAreaZ = np.sum(stPos[1,:]*stArea)
-    sumAreaZ = np.pi*tsk*(ha/2) * (-ha/2+(2/np.pi)*(ha/2)) + np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))*tsk*2 * (-ha/2 - plateZLength/2) + ha*tsp*(-ha/2) + sumStAreaZ
-    sumArea = np.pi*tsk*(ha/2) + np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))*tsk*2 + ha*tsp + stArea*nst
-    zCentroid = sumAreaZ/sumArea
+
+    sumStAreaZ   = np.sum(stPos[1,:]*stArea)
+    sumAreaZ     = np.pi*tsk*(ha/2) * (-ha/2+(2/np.pi)*(ha/2)) + np.sqrt(np.power(plateYLength, 2)+ np.power(plateZLength, 2))*tsk*2 * (-ha/2 - plateZLength/2)+ ha*tsp*(-ha/2) + sumStAreaZ
+
+    sumArea      = np.pi*tsk*(ha/2) + np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))*tsk*2 + ha*tsp + stArea*nst
+    zCentroid    = sumAreaZ/sumArea
+
     return zCentroid
 
 def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
-
+    """Calculates the moment of inertia for Izz and Iyy and outputs in this order"""
     #Length of the straight skin
     Lsk = np.linalg.norm([H/2,Ca-H/2])
 
@@ -207,28 +216,30 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
     I_zz1 = 1/12*Tsp*H**3
     Beta_plate = np.arctan2((H/2),(Ca-H/2))
     I_zz2 = 1/12*Tsk*(2*Lsk)**3*(np.sin(Beta_plate))**2
-    I_zz3 = 1/128*np.pi*Tsk**4
+    I_zz3 = 1/128*np.pi*Tsk**4   #-- Too small
     I_zz4 = Ast*sum(StPos[0,:]**2) #calcStPos gives list of coordinates (y,z)
 
-    Izz = I_zz1+I_zz2+I_zz3+I_zz4
+    Izz = I_zz1 + I_zz2+I_zz3+I_zz4
+    print(I_zz1,I_zz2,I_zz3,I_zz4)
 
     # ------------------------   Iyy   -------------------------
     # I_yy consists of 4 parts: skin plates (1), skin semicircular (2), stiffeners (3), spar (4)
     # the MoI of the thinwalled semicircle about diameter is r^3*t*pi/4 (calculated by hand)
     # the MoI of the thinwalled semicircle about cg is r^3*t*(pi/4 - 4/pi) (calculated by hand)
 
-    I_yy_plate = 1/12*Tsk*(Lsk)**3*(np.cos(Beta_plate))**2 + Lsk*Tsk*(H/2+0.5*(Ca-H/2)-Zcg)**2
+    I_yy_plate = 1/12*Tsk*(Lsk)**3*(np.cos(Beta_plate))**2 + Lsk*Tsk*(-H/2-0.5*(Ca-H/2)-Zcg)**2
     I_yy1 = 2*I_yy_plate
-    I_yy2 = (H/2)**3*Tsk*(np.pi/4 - 4/np.pi) + np.pi*H/2*Tsk * ((H/2-H/np.pi)-Zcg)**2
-    I_yy3 = Ast*sum((z-Zcg)**2 for z in StPos[1,:])   #calcStPos gives list of coordinates (y,z)
-    I_yy4 = H*Tsp*(H/2-Zcg)**2                      #only steiner term due to thin walled approx
+    I_yy2 = (H/2)**3*Tsk*(np.pi/4 - 4/np.pi) + np.pi*H/2*Tsk * (-(H/2-H/np.pi)-Zcg)**2
+    I_yy3 = Ast*sum((StPos[1,:]-Zcg)**2)   #calcStPos gives (y,z)
+    I_yy4 = H*Tsp*(-H/2-Zcg)**2              #only steiner term due to thin walled approx
 
     Iyy = I_yy1+I_yy2+I_yy3+I_yy4
+    print(I_yy1,I_yy2,I_yy3,I_yy4)
 
     return Izz, Iyy
 
 
-  #+++++++++++++++++++++++++++++++++++++ Numerical Integration ++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++ Numerical Integration +++++++++++++++++++++++++++++++++
 def integration(function,n,a,b):
 
 	zf = b
@@ -272,7 +283,7 @@ def integration(function,n,a,b):
 
 
 
-def calcStArea(Tst, Hst, Wst):
+def calcStArea(Tst, Hst, Wst):   #Verified by Vlad!
   #Calculates area of stringer in m^2
     StArea = Tst * (Hst + Wst)
     return StArea
@@ -285,7 +296,7 @@ class Aircraft:
             self.ha  = 0.225
             self.tsk = 0.0011
             self.tst = 0.0012
-            self.wst = 0.02
+            self.wst = 0.020
             self.hst = 0.015
             self.nst = 17
             self.tsp = 0.0029
@@ -295,7 +306,7 @@ class Aircraft:
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def main():
-    np.set_printoptions(precision=3)
+
     craft = Aircraft("A320")
     print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
@@ -305,11 +316,12 @@ def main():
     Zcg = calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst)
     print("Centroid z-coordinate is:\n", Zcg)
 
-    print("Izz and Iyy:\n",calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos))
+    Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
+    print("Izz and Iyy:\n",Izz, Iyy)
 
     #calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0)
 
-    drawSection(craft.ha,craft.ca,-pos)
+    drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:])
 if __name__ == "__main__":
     main()
 

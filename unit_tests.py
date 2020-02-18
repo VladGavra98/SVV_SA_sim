@@ -5,10 +5,11 @@ This meant to be used for the tests of units & modules.
 @author: vladg
 """
 
-from main_sim import calcCircum, calcStArea, calcStPose, calcInertia,calcCentroid
+from main_sim import calcCircum, calcStArea, calcStPose, calcInertia,calcCentroid,drawSection
 import unittest
-
 import numpy as np
+
+EPS = 1e-7
 
 aircraft = "A320" # Write either A320, F100, CRJ700 or Do228 (bear in mind capitals); this is used for aerodynamic loading
 ca = 0.547  # m
@@ -29,6 +30,7 @@ d3 = 0.01840  # m change
 theta = np.radians(26)  # rad
 P = 97.4*1000  # N
 
+
 class TestStringMethods(unittest.TestCase):
 
     def test_upper(self):
@@ -39,11 +41,12 @@ class TestStringMethods(unittest.TestCase):
 
     def test_calcCentroid(self):
         zc_ver = -0.21577972811362234
-        assert calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst) == zc_ver
+        zc     = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
+        assert (abs(( zc-zc_ver) / zc_ver) *100 <= 2) == True
 
     def test_calcInertia(self):
-        Iyy_ver = 6.86413733566373e-05   #from verification model
         Izz_ver = 1.28074562408502e-05
+        Iyy_ver = 6.86413733566373e-05   #from verification model
 
 if __name__ == '__main__':
     unittest.main()
