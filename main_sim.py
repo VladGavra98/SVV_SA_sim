@@ -17,6 +17,109 @@ plt.close('all')
 g = 9.81 #m/s2
 
 
+def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
+    #open section shear flow
+
+    # testnumbers
+    Izz = 1
+    Iyy = 1
+    ca = 7
+    ha = 6
+
+    zCentroid = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
+    stArea = calcStArea(tst,hst,wst)
+    stringerPos = calcStPose(ha, ca, nst)
+    ##### top flat plate
+    # filter stringers on top flat plate
+
+
+    plateYLength = ha/2
+    plateZLength = ca-ha/2
+    plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
+
+    ############ (1) top flate plate starts here
+    n1 = 100
+    stringerPosFilt1 = stringerPos[:, (stringerPos[0, :] >= 0) & (stringerPos[1, :] <= -ha / 2)]
+    sVec1 = np.linspace(0,plateLength,n1+1)
+    yVec1 = (plateYLength/plateLength) * sVec1
+    zVec1 = -zCentroid -ca + (plateZLength/plateLength) * sVec1
+    ds1 = plateLength/n1
+
+    intYVec1,intZVec1 = calcIntegralArray(zVec1,yVec1,sVec1,n1)
+
+    #intYVec1 = addStringerContribution(intYVec1,yVec1,zVec1,ds1,n1,stringerPosFilt1,stArea,"Y")
+    #intZVec1 = addStringerContribution(intZVec1,yVec1,zVec1,ds1,n1,stringerPosFilt1,stArea,"Z")
+    qs1 = -(Sz/Iyy)*intZVec1 - (Sy/Izz)*intYVec1
+    print(qs1)
+
+    ##########  (2) spar plate starts here
+    n2 = 100
+    #no stringers on spar duh
+    sVec2 = np.linspace(0,ha,n1+1)
+    yVec2 = ha/2-sVec2
+    zVec2 = np.ones(len(sVec2))*(-zCentroid -ha/2)
+    ds2 = ha/n2
+
+    intYVec2,intZVec2 = calcIntegralArray(zVec2,yVec2,sVec2,n2)
+    qs2 = -(Sz/Iyy)*intZVec2 - (Sy/Izz)*intYVec2
+    #add last value from qs1
+    qs2 += qs1[-1]
+    print(qs2)
+
+    ######## (3) lower flat plate starts here
+    n3 = 100
+    stringerPosFilt3 = stringerPos[:, (stringerPos[0, :] <= 0) & (stringerPos[1, :] <= -ha / 2)]
+    sVec3 = np.linspace(0, plateLength, n3 + 1)
+    yVec3 = (-ha/2) + (plateYLength / plateLength) * sVec3
+    zVec3 = (-zCentroid-ha/2) - (plateZLength / plateLength) * sVec3
+    ds3 = plateLength / n3
+
+    intYVec3, intZVec3 = calcIntegralArray(zVec3, yVec3, sVec3, n3)
+
+    #intYVec3 = addStringerContribution(intYVec3, yVec3, zVec3, ds3, n3, stringerPosFilt3, stArea, "Y")
+    #intZVec3 = addStringerContribution(intZVec3, yVec3, zVec3, ds3, n3, stringerPosFilt3, stArea, "Z")
+    qs3 = -(Sz / Iyy) * intZVec3 - (Sy / Izz) * intYVec3
+    #add last value from qs2
+    qs3 += qs2[-1]
+
+    print(qs3)
+
+    return
+
+
+
+def calcIntegralArray(z,y,s, n):
+    intYVec = np.array([0])
+    intZVec = np.array([0])
+    for i in range(1, n):
+        integralY = sp.integrate.simps(y[:i + 1], s[:i + 1])
+        intYVec = np.append(intYVec, integralY)
+        integralZ = sp.integrate.simps(z[:i + 1], s[:i + 1])
+        intZVec = np.append(intZVec, integralZ)
+    return intYVec,intZVec
+
+
+def addStringerContribution(integrated,yVec,zVec,ds,n,stringerPos,stArea,direction):
+    used = np.array([])
+    newIntegrated = integrated
+    for i in range(0,n+1):
+        for j in range(0,stringerPos.shape[1]):
+            dist = calcDist(stringerPos[0,j],stringerPos[1,j],yVec[i],zVec[i])
+            if dist < ds and j not in used:
+                used = np.append(used,j)
+                if direction == "Y":
+                    newIntegrated[j+1:] += stArea*stringerPos[0,j]
+                elif direction == "Z":
+                    newIntegrated[j + 1:] += stArea * stringerPos[1, j]
+    if len(used) != stringerPos.shape[1]:
+        print("Warning addStringerContribution(): Not all stringers have been used")
+        print(used)
+    return newIntegrated
+
+def calcDist(y1,z1,y2,z2):
+    return np.sqrt(np.power(y1-y2, 2) + np.power(z1-z2, 2))
+
+
 def drawSection(ha,ca):
     """Plots the cross-section."""
     fig,ax = plt.subplots()
@@ -72,7 +175,16 @@ def calcCircum(ha,ca):
     return np.pi*ha/2 + 2*(np.sqrt((ca-ha/2)**2 + (ha/2)**2))
 
 
-
+def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):
+    stArea = calcStArea(tst,hst,wst)
+    stPos = calcStPose(ha,ca,nst)
+    plateYLength = ha / 2
+    plateZLength = ca - ha / 2
+    sumStAreaZ = np.sum(stPos[1,:]*stArea)
+    sumAreaZ = np.pi*tsk*(ha/2) * (-ha/2+(2/np.pi)*(ha/2)) + np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))*tsk*2 * (-ha/2 - plateZLength/2) + ha*tsp*(-ha/2) + sumStAreaZ
+    sumArea = np.pi*tsk*(ha/2) + np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))*tsk*2 + ha*tsp + stArea*nst
+    zCentroid = sumAreaZ/sumArea
+    return zCentroid
 
 def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
     
@@ -162,12 +274,12 @@ class Aircraft:
             self.la  = 2.771          #m
             self.ca  = 0.547
             self.ha  = 0.225
-            self.tsk = 0.00011
-            self.tst = 0.00012
-            self.wst = 0.002
-            self.hst = 0.0015
+            self.tsk = 0.0011
+            self.tst = 0.0012
+            self.wst = 0.02
+            self.hst = 0.015
             self.nst = 17
-            self.tsp = 0.00029
+            self.tsp = 0.0029
             self.theta = np.radians(26)  #rad
             
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -176,8 +288,9 @@ def main():
     np.set_printoptions(precision=3)
     craft = Aircraft("A320")
     print("Circumference: \n",calcCircum(craft.ha,craft.ca))
-    print("Stringer positions are:\n",calcStPose(craft.ha,craft.ca,1))
-
+    print("Stringer positions are:\n",calcStPose(craft.ha,craft.ca,17))
+    print("Centroid z-coordinate is:\n", calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst))
+    calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0)
 
 if __name__ == "__main__":
     main()
