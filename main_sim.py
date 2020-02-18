@@ -17,86 +17,137 @@ plt.close('all')
 g = 9.81 #m/s2
 
 
+
+
 def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
     #open section shear flow
 
-    # testnumbers
+    #testcase
+    ha = 6
+    ca = 7
+    tsk = 1
+    tsp = 1
+    tst = 1
+    hst = 1
+    wst = 1
+    nst = 5
+    Sz = 1
+    Sy = 0
     Izz = 1
     Iyy = 1
-    ca = 7
-    ha = 6
 
     zCentroid = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
     stArea = calcStArea(tst,hst,wst)
     stringerPos = calcStPose(ha, ca, nst)
-    ##### top flat plate
-    # filter stringers on top flat plate
 
+    #Izz, Iyy = calcInertia(ca, ha, tsk, tsp, tst, stArea, zCentroid, stringerPos)
+    print("zCentroid:\n",zCentroid)
+
+    stringerPos = np.array([[0,(ha/2)*np.sin(np.pi/4),-(ha/2)*np.sin(np.pi/4),1.5,-1.5],[0,-ha/2+(ha/2)*np.cos(np.pi/4),-ha/2+(ha/2)*np.cos(np.pi/4),-5,-5]])
+    stringerPosCentroid = stringerPos
+    stringerPosCentroid[1, :] = stringerPosCentroid[1, :] - zCentroid
+    print("stringerPosCentroid:\n", stringerPosCentroid)
 
     plateYLength = ha/2
     plateZLength = ca-ha/2
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
-
-    ############ (1) top flate plate starts here
-    n1 = 100
-    stringerPosFilt1 = stringerPos[:, (stringerPos[0, :] >= 0) & (stringerPos[1, :] <= -ha / 2)]
+    ### right cell
+    ############ (1) top flat plate : starting from (y = 0, z = -ca)
+    n1 = 10
+    #get stringers on top flate plate
+    stringerPosFilt1 = stringerPosCentroid[:, (stringerPosCentroid[0, :] >= 0) & (stringerPosCentroid[1, :] <= -(ha / 2)-zCentroid)]
     sVec1 = np.linspace(0,plateLength,n1+1)
     yVec1 = (plateYLength/plateLength) * sVec1
-    zVec1 = -zCentroid -ca + (plateZLength/plateLength) * sVec1
+    zVecCentroid1 = -zCentroid -ca + (plateZLength/plateLength) * sVec1
     ds1 = plateLength/n1
-
-    intYVec1,intZVec1 = calcIntegralArray(zVec1,yVec1,sVec1,n1)
-
-    #intYVec1 = addStringerContribution(intYVec1,yVec1,zVec1,ds1,n1,stringerPosFilt1,stArea,"Y")
-    #intZVec1 = addStringerContribution(intZVec1,yVec1,zVec1,ds1,n1,stringerPosFilt1,stArea,"Z")
+    intYVec1,intZVec1 = calcIntegralArray(zVecCentroid1,yVec1,sVec1,n1,tsk)
+    #intYVec1 = addStringerContribution(intYVec1,yVec1,zVecCentroid1,ds1,n1,stringerPosFilt1,stArea,"Y")
+    #intZVec1 = addStringerContribution(intZVec1,yVec1,zVecCentroid1,ds1,n1,stringerPosFilt1,stArea,"Z")
     qs1 = -(Sz/Iyy)*intZVec1 - (Sy/Izz)*intYVec1
-    print(qs1)
 
-    ##########  (2) spar plate starts here
-    n2 = 100
+    ############ (2) spar plate : continuing from (1)
+    n2 = 10
     #no stringers on spar duh
-    sVec2 = np.linspace(0,ha,n1+1)
+    sVec2 = np.linspace(0,ha,n2+1)
     yVec2 = ha/2-sVec2
-    zVec2 = np.ones(len(sVec2))*(-zCentroid -ha/2)
+    zVecCentroid2 = np.ones(len(sVec2))*(-zCentroid -ha/2)
     ds2 = ha/n2
-
-    intYVec2,intZVec2 = calcIntegralArray(zVec2,yVec2,sVec2,n2)
+    intYVec2,intZVec2 = calcIntegralArray(zVecCentroid2,yVec2,sVec2,n2,tsp)
     qs2 = -(Sz/Iyy)*intZVec2 - (Sy/Izz)*intYVec2
     #add last value from qs1
     qs2 += qs1[-1]
-    print(qs2)
-
-    ######## (3) lower flat plate starts here
-    n3 = 100
-    stringerPosFilt3 = stringerPos[:, (stringerPos[0, :] <= 0) & (stringerPos[1, :] <= -ha / 2)]
+    
+    ############ (3) lower flat plate : continuing from (2)
+    n3 = 10
+    stringerPosFilt3 = stringerPosCentroid[:, (stringerPosCentroid[0, :] <= 0) & (stringerPosCentroid[1, :] <= (-ha / 2)-zCentroid)]
     sVec3 = np.linspace(0, plateLength, n3 + 1)
     yVec3 = (-ha/2) + (plateYLength / plateLength) * sVec3
-    zVec3 = (-zCentroid-ha/2) - (plateZLength / plateLength) * sVec3
+    zVecCentroid3 = (-zCentroid-(ha/2)) - (plateZLength / plateLength) * sVec3
     ds3 = plateLength / n3
-
-    intYVec3, intZVec3 = calcIntegralArray(zVec3, yVec3, sVec3, n3)
-
-    #intYVec3 = addStringerContribution(intYVec3, yVec3, zVec3, ds3, n3, stringerPosFilt3, stArea, "Y")
-    #intZVec3 = addStringerContribution(intZVec3, yVec3, zVec3, ds3, n3, stringerPosFilt3, stArea, "Z")
+    intYVec3, intZVec3 = calcIntegralArray(zVecCentroid3, yVec3, sVec3, n3,tsk)
+    #intYVec3 = addStringerContribution(intYVec3, yVec3, zVecCentroid3, ds3, n3, stringerPosFilt3, stArea, "Y")
+    #intZVec3 = addStringerContribution(intZVec3, yVec3, zVecCentroid3, ds3, n3, stringerPosFilt3, stArea, "Z")
     qs3 = -(Sz / Iyy) * intZVec3 - (Sy / Izz) * intYVec3
     #add last value from qs2
     qs3 += qs2[-1]
 
-    print(qs3)
 
-    return
+    ###left cell
+    ######## (4) semicircular arc starts here
+    n4 = 10
+    stringerPosFilt4 = stringerPosCentroid[:, (stringerPosCentroid[1, :] >= (-ha / 2)-zCentroid)]
+    thetaVec4 = np.linspace(0, np.pi, n4 + 1)
+    sVec4 = thetaVec4*(ha/2)
+    yVec4 =(ha / 2) * np.cos(thetaVec4)
+    zVecCentroid4 =(-zCentroid - (ha/2) + (ha/2)*np.sin(thetaVec4))
+    yVecR4 = yVec4 *  (ha / 2)
+    zVecCentroidR4 = zVecCentroid4 * (ha/2)
+    ds4 = (np.pi*(ha/2)) / n4
+    intYVec4, intZVec4 = calcIntegralArray(zVecCentroidR4, yVecR4, thetaVec4, n4, tsk)
+    #intYVec4 = addStringerContribution(intYVec4, yVec4, zVecCentroid4, ds4, n4, stringerPosFilt4, stArea, "Y")
+    #intZVec4 = addStringerContribution(intZVec4, yVec4, zVecCentroid4, ds4, n4, stringerPosFilt4, stArea, "Z")
+    qs4 = -(Sz / Iyy) * intZVec4 - (Sy / Izz) * intYVec4
+
+    ############ (5) spar plate : continuing from (4)
+    n5 = 10
+    # no stringers on spar duh
+    sVec5 = np.linspace(0, ha, n5 + 1)
+    yVec5 = - ha / 2 + sVec2
+    zVecCentroid5 = np.ones(len(sVec2)) * (-zCentroid - ha / 2)
+    ds5 = ha / n5
+    intYVec5, intZVec5 = calcIntegralArray(zVecCentroid5, yVec5, sVec5, n5, tsp)
+    qs5 = -(Sz / Iyy) * intZVec5 - (Sy / Izz) * intYVec5
+    # add last value from qs1
+    qs5 += qs4[-1]
+    print(sVec1)
+    print(qs1)
+    #calculate const. sh flow
+    #integrate open section sh. flow for left cell
+    rhs1 = -(sp.integrate.simps(-qs2,sVec2)/tsp+sp.integrate.simps(qs4,sVec4)/tsk+sp.integrate.simps(qs5,sVec5))
+    rhs2 = -(sp.integrate.simps((qs1/tsk),sVec1)+sp.integrate.simps((qs2/tsp),sVec2)+sp.integrate.simps((qs3/tsk),sVec3)-sp.integrate.simps(qs5,sVec5))
+    A = np.matrix([[(np.pi*ha)/(2*tsk)+(ha/tsp),-(ha/tsp)],
+                   [-(ha/tsp),(2*plateLength)/(tsk)+(ha/tsp)]])
+    b = np.array([rhs1,rhs2])
+    #x[0] is q,0 of left cell, x[1] is q,0 of right cell
+    x = np.linalg.solve(A,b)
+    print(x)
+    q1 = qs1 + x[1]
+    q2 = qs2 - qs5 + x[1] - x[0]
+    q3 = qs3 + x[1]
+    q4 = qs4 + x[0]
+
+    return qs1,qs2,qs3,qs4
 
 
-
-def calcIntegralArray(z,y,s, n):
+def calcIntegralArray(z,y,s, n,t):
     intYVec = np.array([0])
     intZVec = np.array([0])
-    for i in range(1, n):
+    for i in range(1, n+1):
         integralY = sp.integrate.simps(y[:i + 1], s[:i + 1])
         intYVec = np.append(intYVec, integralY)
         integralZ = sp.integrate.simps(z[:i + 1], s[:i + 1])
         intZVec = np.append(intZVec, integralZ)
-    return intYVec,intZVec
+    return t*intYVec,t*intZVec
 
 
 def addStringerContribution(integrated,yVec,zVec,ds,n,stringerPos,stArea,direction):
@@ -107,13 +158,15 @@ def addStringerContribution(integrated,yVec,zVec,ds,n,stringerPos,stArea,directi
             dist = calcDist(stringerPos[0,j],stringerPos[1,j],yVec[i],zVec[i])
             if dist < ds and j not in used:
                 used = np.append(used,j)
-                if direction == "Y":
+                print("yVec",yVec[i])
+                print("zVec",zVec[i])
+                if direction=="Y":
                     newIntegrated[j+1:] += stArea*stringerPos[0,j]
                 elif direction == "Z":
                     newIntegrated[j + 1:] += stArea * stringerPos[1, j]
+    print("used:\n",used)
     if len(used) != stringerPos.shape[1]:
         print("Warning addStringerContribution(): Not all stringers have been used")
-        print(used)
     return newIntegrated
 
 def calcDist(y1,z1,y2,z2):
@@ -287,9 +340,9 @@ class Aircraft:
 def main():
     np.set_printoptions(precision=3)
     craft = Aircraft("A320")
-    print("Circumference: \n",calcCircum(craft.ha,craft.ca))
-    print("Stringer positions are:\n",calcStPose(craft.ha,craft.ca,17))
-    print("Centroid z-coordinate is:\n", calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst))
+    #print("Circumference: \n",calcCircum(craft.ha,craft.ca))
+    #print("Stringer positions are:\n",calcStPose(craft.ha,craft.ca,17))
+    #print("Centroid z-coordinate is:\n", calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst))
     calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0)
 
 if __name__ == "__main__":
