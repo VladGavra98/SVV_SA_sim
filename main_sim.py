@@ -5,6 +5,7 @@ SVV 2020- Structural Analysis Assignment
 Simulation for stress and deflection in A320 Airleron
 
 @author: vladg
+@version: 19-02-#1
 """
 import numpy as np
 import scipy as sp
@@ -124,19 +125,23 @@ def calcDist(y1,z1,y2,z2):
     return np.sqrt(np.power(y1-y2, 2) + np.power(z1-z2, 2))
 
 
-def drawSection(ha,ca,stringer_posz,stringer_posy): #Verified by Vlad!
+def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg): #Verified by Vlad & Alberto!
     """Plots the cross-section."""
     fig,ax = plt.subplots()
     plt.title("Cross section")
-
-    lines = [[(0, 0), (ha/2, ha/2)], [(0, 0), (ha/2, -ha/2)], [(ha/2, ha/2), (ha/2, -ha/2)],
+    
+    an = np.linspace(np.pi/2, np.pi*3/2, 100)
+    plt.plot(ha/2+ha/2 * np.cos(an), ha/2 * np.sin(an))
+    lines = [[(ha/2, ha/2), (ha/2, -ha/2)],
              [(ha/2,ha/2),(ca,0)],[(ha/2,-ha/2),(ca,0)]]
-
     lc = mc.LineCollection(lines, linewidths=2)
-    circle = plt.Circle((ha/2,0),ha/2,color='b',fill=False)
-    ax.add_artist(circle)
     ax.add_collection(lc)
-    plt.scatter(stringer_posz,stringer_posy)
+    plt.plot(-Zcg, 0, "or",label='Centroid')
+    
+    plt.grid()
+    plt.axis('equal')
+    plt.scatter(stringer_posz,stringer_posy,label='Stiffener')
+    plt.legend()
     ax.autoscale()
 
 #++++++++++++++++++++ Stringer Position (from TE to LE and back in c.c. order)++++++++++
@@ -197,17 +202,20 @@ def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):  #Verified by Vlad!
     plateZLength = ca - ha / 2
 
     sumStAreaZ   = np.sum(stPos[1,:]*stArea)
-    sumAreaZ     = np.pi*tsk*(ha/2) * (-ha/2+(2/np.pi)*(ha/2)) + np.sqrt(np.power(plateYLength, 2)+ np.power(plateZLength, 2))*tsk*2 * (-ha/2 - plateZLength/2)+ ha*tsp*(-ha/2) + sumStAreaZ
+    sumAreaZ     = np.pi*tsk*(ha/2) * (-ha/2+(2/np.pi)*(ha/2)) + np.linalg.norm([plateYLength,plateZLength])*tsk*2 * (-ha/2 - plateZLength/2)+ ha*tsp*(-ha/2) + sumStAreaZ
 
-    sumArea      = np.pi*tsk*(ha/2) + np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))*tsk*2 + ha*tsp + stArea*nst
+    sumArea      = np.pi*tsk*(ha/2) + np.linalg.norm([plateYLength,plateZLength])*tsk*2 + ha*tsp + stArea*nst
+    
     zCentroid    = sumAreaZ/sumArea
 
-    return zCentroid
+    return zCentroid        #note Zcg is negative
 
 def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
     """Calculates the moment of inertia for Izz and Iyy and outputs in this order"""
-    #Length of the straight skin
-    Lsk = np.linalg.norm([H/2,Ca-H/2])
+    """Method is verified and fully correct"""
+
+
+    Lsk = np.linalg.norm([H/2,Ca-H/2])     #Length of the slanted skin
 
 
     # ------------------------   Izz   ------------------------
@@ -216,25 +224,25 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
     I_zz1 = 1/12*Tsp*H**3
     Beta_plate = np.arctan2((H/2),(Ca-H/2))
     I_zz2 = 1/12*Tsk*(2*Lsk)**3*(np.sin(Beta_plate))**2
-    I_zz3 = 1/128*np.pi*Tsk**4   #-- Too small
+    I_zz3 = 0.5*1/8*np.pi*Tsk*H**3
     I_zz4 = Ast*sum(StPos[0,:]**2) #calcStPos gives list of coordinates (y,z)
 
     Izz = I_zz1 + I_zz2+I_zz3+I_zz4
-    print(I_zz1,I_zz2,I_zz3,I_zz4)
+    #print(I_zz1,I_zz2,I_zz3,I_zz4)
 
     # ------------------------   Iyy   -------------------------
     # I_yy consists of 4 parts: skin plates (1), skin semicircular (2), stiffeners (3), spar (4)
-    # the MoI of the thinwalled semicircle about diameter is r^3*t*pi/4 (calculated by hand)
-    # the MoI of the thinwalled semicircle about cg is r^3*t*(pi/4 - 4/pi) (calculated by hand)
+    # the MoI of the thinwalled semicircle about diameter is r^3*t*pi/4 (calculated by hand,verified)
+    # the MoI of the thinwalled semicircle about cg is r^3*t*(pi/2 - 4/pi) (calculated by hand)
 
-    I_yy_plate = 1/12*Tsk*(Lsk)**3*(np.cos(Beta_plate))**2 + Lsk*Tsk*(-H/2-0.5*(Ca-H/2)-Zcg)**2
+    I_yy_plate = 1/12*Tsk*(Lsk)**3*(np.cos(Beta_plate))**2 + Lsk*Tsk*(-H/2-0.5*(Ca-H/2)-Zcg)**2 #note the plus before Zcg because Zcg is negative itself
     I_yy1 = 2*I_yy_plate
-    I_yy2 = (H/2)**3*Tsk*(np.pi/4 - 4/np.pi) + np.pi*H/2*Tsk * (-(H/2-H/np.pi)-Zcg)**2
+    I_yy2 = (H/2)**3*Tsk*(np.pi/2 - 4/np.pi) + np.pi*H/2*Tsk * ((-H/2+H/np.pi)-Zcg)**2
     I_yy3 = Ast*sum((StPos[1,:]-Zcg)**2)   #calcStPos gives (y,z)
-    I_yy4 = H*Tsp*(-H/2-Zcg)**2              #only steiner term due to thin walled approx
+    I_yy4 = H*Tsp*(-H/2-Zcg)**2  #only steiner term due to thin walled approx (difference 5*e-10)
 
     Iyy = I_yy1+I_yy2+I_yy3+I_yy4
-    print(I_yy1,I_yy2,I_yy3,I_yy4)
+    #print(I_yy1,I_yy2,I_yy3,I_yy4)
 
     return Izz, Iyy
 
@@ -310,6 +318,9 @@ def main():
     craft = Aircraft("A320")
     print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
+    stArea = calcStArea(craft.tst,craft.hst,craft.wst)
+    print("Stringer Area is:\n",stArea)
+
     pos = calcStPose(craft.ha,craft.ca,craft.nst)
     print("Stringers (y,z) are:\n",pos)
 
@@ -320,9 +331,8 @@ def main():
     print("Izz and Iyy:\n",Izz, Iyy)
 
     #calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0)
+    
 
-    drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:])
+    drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg)
 if __name__ == "__main__":
     main()
-
-
