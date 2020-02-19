@@ -306,7 +306,6 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
 
 #++++++++++++++++++++++++++++++++ Numerical Integration +++++++++++++++++++++++++++++++++
 def integration(function,n,a,b):
-
 	zf = b
 
 	deltaz = round(zf/n,8)
@@ -331,6 +330,7 @@ def integration(function,n,a,b):
 
 	weights = np.dot(np.linalg.inv(A),np.transpose(primvector))
 	total = np.sum(primvector)
+
 
 
 	####  Verification ######
