@@ -3,7 +3,7 @@
 SVV 2020- Structural Analysis Assignment
 
 Simulation for stress and deflection in A320 Airleron
-
+19/02 morning session
 @author: vladg
 """
 import numpy as np
@@ -22,28 +22,32 @@ g = 9.81 #m/s2
 def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
     #open section shear flow
 
-    #testcase
-    ha = 6
-    ca = 7
-    tsk = 1
-    tsp = 1
-    tst = 1
-    hst = 1
-    wst = 1
-    nst = 5
     Sz = 1
     Sy = 0
-    Izz = 1
-    Iyy = 1
+    #testcase
+    #ha = 6
+    #ca = 7
+    #tsk = 1
+    #tsp = 1
+    #tst = 1
+    #hst = 1
+    #wst = 1
+    #nst = 5
+    #Sz = 1
+    #Sy = 0
+    #Izz = 1
+    #Iyy = 1
 
     zCentroid = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
     stArea = calcStArea(tst,hst,wst)
     stringerPos = calcStPose(ha, ca, nst)
 
-    #Izz, Iyy = calcInertia(ca, ha, tsk, tsp, tst, stArea, zCentroid, stringerPos)
+    zCentroid = -0.21578
+    Izz, Iyy = 1.28074*10**(-5),6.84137*10**(-5)
+    #calcInertia(ca, ha, tsk, tsp, tst, stArea, zCentroid, stringerPos)
     print("zCentroid:\n",zCentroid)
 
-    stringerPos = np.array([[0,(ha/2)*np.sin(np.pi/4),-(ha/2)*np.sin(np.pi/4),1.5,-1.5],[0,-ha/2+(ha/2)*np.cos(np.pi/4),-ha/2+(ha/2)*np.cos(np.pi/4),-5,-5]])
+    #stringerPos = np.array([[0,(ha/2)*np.sin(np.pi/4),-(ha/2)*np.sin(np.pi/4),1.5,-1.5],[0,-ha/2+(ha/2)*np.cos(np.pi/4),-ha/2+(ha/2)*np.cos(np.pi/4),-5,-5]])
     stringerPosCentroid = stringerPos
     stringerPosCentroid[1, :] = stringerPosCentroid[1, :] - zCentroid
     print("stringerPosCentroid:\n", stringerPosCentroid)
@@ -53,7 +57,7 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
     ### right cell
     ############ (1) top flat plate : starting from (y = 0, z = -ca)
-    n1 = 10
+    n1 = 1000
     #get stringers on top flate plate
     stringerPosFilt1 = stringerPosCentroid[:, (stringerPosCentroid[0, :] >= 0) & (stringerPosCentroid[1, :] <= -(ha / 2)-zCentroid)]
     sVec1 = np.linspace(0,plateLength,n1+1)
@@ -61,12 +65,12 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
     zVecCentroid1 = -zCentroid -ca + (plateZLength/plateLength) * sVec1
     ds1 = plateLength/n1
     intYVec1,intZVec1 = calcIntegralArray(zVecCentroid1,yVec1,sVec1,n1,tsk)
-    #intYVec1 = addStringerContribution(intYVec1,yVec1,zVecCentroid1,ds1,n1,stringerPosFilt1,stArea,"Y")
-    #intZVec1 = addStringerContribution(intZVec1,yVec1,zVecCentroid1,ds1,n1,stringerPosFilt1,stArea,"Z")
+    intYVec1 = addStringerContribution(intYVec1,yVec1,zVecCentroid1,ds1,n1,stringerPosFilt1,stArea,"Y")
+    intZVec1 = addStringerContribution(intZVec1,yVec1,zVecCentroid1,ds1,n1,stringerPosFilt1,stArea,"Z")
     qs1 = -(Sz/Iyy)*intZVec1 - (Sy/Izz)*intYVec1
 
     ############ (2) spar plate : continuing from (1)
-    n2 = 10
+    n2 = 1000
     #no stringers on spar duh
     sVec2 = np.linspace(0,ha,n2+1)
     yVec2 = ha/2-sVec2
@@ -78,23 +82,23 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
     qs2 += qs1[-1]
     
     ############ (3) lower flat plate : continuing from (2)
-    n3 = 10
+    n3 = 1000
     stringerPosFilt3 = stringerPosCentroid[:, (stringerPosCentroid[0, :] <= 0) & (stringerPosCentroid[1, :] <= (-ha / 2)-zCentroid)]
     sVec3 = np.linspace(0, plateLength, n3 + 1)
     yVec3 = (-ha/2) + (plateYLength / plateLength) * sVec3
     zVecCentroid3 = (-zCentroid-(ha/2)) - (plateZLength / plateLength) * sVec3
     ds3 = plateLength / n3
     intYVec3, intZVec3 = calcIntegralArray(zVecCentroid3, yVec3, sVec3, n3,tsk)
-    #intYVec3 = addStringerContribution(intYVec3, yVec3, zVecCentroid3, ds3, n3, stringerPosFilt3, stArea, "Y")
-    #intZVec3 = addStringerContribution(intZVec3, yVec3, zVecCentroid3, ds3, n3, stringerPosFilt3, stArea, "Z")
+    intYVec3 = addStringerContribution(intYVec3, yVec3, zVecCentroid3, ds3, n3, stringerPosFilt3, stArea, "Y")
+    intZVec3 = addStringerContribution(intZVec3, yVec3, zVecCentroid3, ds3, n3, stringerPosFilt3, stArea, "Z")
     qs3 = -(Sz / Iyy) * intZVec3 - (Sy / Izz) * intYVec3
     #add last value from qs2
-    qs3 += qs2[-1]
+
 
 
     ###left cell
     ######## (4) semicircular arc starts here
-    n4 = 10
+    n4 = 1000
     stringerPosFilt4 = stringerPosCentroid[:, (stringerPosCentroid[1, :] >= (-ha / 2)-zCentroid)]
     thetaVec4 = np.linspace(0, np.pi, n4 + 1)
     sVec4 = thetaVec4*(ha/2)
@@ -104,39 +108,41 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy):
     zVecCentroidR4 = zVecCentroid4 * (ha/2)
     ds4 = (np.pi*(ha/2)) / n4
     intYVec4, intZVec4 = calcIntegralArray(zVecCentroidR4, yVecR4, thetaVec4, n4, tsk)
-    #intYVec4 = addStringerContribution(intYVec4, yVec4, zVecCentroid4, ds4, n4, stringerPosFilt4, stArea, "Y")
-    #intZVec4 = addStringerContribution(intZVec4, yVec4, zVecCentroid4, ds4, n4, stringerPosFilt4, stArea, "Z")
+    intYVec4 = addStringerContribution(intYVec4, yVec4, zVecCentroid4, ds4, n4, stringerPosFilt4, stArea, "Y")
+    intZVec4 = addStringerContribution(intZVec4, yVec4, zVecCentroid4, ds4, n4, stringerPosFilt4, stArea, "Z")
     qs4 = -(Sz / Iyy) * intZVec4 - (Sy / Izz) * intYVec4
 
-    ############ (5) spar plate : continuing from (4)
-    n5 = 10
-    # no stringers on spar duh
-    sVec5 = np.linspace(0, ha, n5 + 1)
-    yVec5 = - ha / 2 + sVec2
-    zVecCentroid5 = np.ones(len(sVec2)) * (-zCentroid - ha / 2)
-    ds5 = ha / n5
-    intYVec5, intZVec5 = calcIntegralArray(zVecCentroid5, yVec5, sVec5, n5, tsp)
-    qs5 = -(Sz / Iyy) * intZVec5 - (Sy / Izz) * intYVec5
-    # add last value from qs1
-    qs5 += qs4[-1]
-    print(sVec1)
-    print(qs1)
+    qs3 += qs2[-1]
+    qs3 += qs4[-1]
+    print("qs1", qs1)
+    print("qs2", qs2)
+    print("qs3", qs3)
+    print("qs4", qs4)
     #calculate const. sh flow
     #integrate open section sh. flow for left cell
-    rhs1 = -(sp.integrate.simps(-qs2,sVec2)/tsp+sp.integrate.simps(qs4,sVec4)/tsk+sp.integrate.simps(qs5,sVec5))
-    rhs2 = -(sp.integrate.simps((qs1/tsk),sVec1)+sp.integrate.simps((qs2/tsp),sVec2)+sp.integrate.simps((qs3/tsk),sVec3)-sp.integrate.simps(qs5,sVec5))
-    A = np.matrix([[(np.pi*ha)/(2*tsk)+(ha/tsp),-(ha/tsp)],
-                   [-(ha/tsp),(2*plateLength)/(tsk)+(ha/tsp)]])
+    rhs1 = -(-sp.integrate.simps(qs2,sVec2)/tsp+sp.integrate.simps(qs4,sVec4)/tsk)
+    rhs2 = -(sp.integrate.simps(qs1,sVec1)/tsk+sp.integrate.simps(qs2,sVec2)/tsp+sp.integrate.simps(qs3,sVec3)/tsk)
+    A = np.matrix([[(np.pi*ha)/(2*tsk)+(ha/tsp) ,   -(ha/tsp)],
+                   [-(ha/tsp)                   ,   (2*plateLength)/(tsk)+(ha/tsp)]])
     b = np.array([rhs1,rhs2])
     #x[0] is q,0 of left cell, x[1] is q,0 of right cell
     x = np.linalg.solve(A,b)
     print(x)
+
     q1 = qs1 + x[1]
-    q2 = qs2 - qs5 + x[1] - x[0]
+    q2 = qs2 + x[1] - x[0]
     q3 = qs3 + x[1]
     q4 = qs4 + x[0]
-
+    print("q1",q1)
+    print("q2",q2)
+    print("q3",q3)
+    print("q4",q4)
     return qs1,qs2,qs3,qs4
+
+
+
+    #moment around hinge
+
 
 
 def calcIntegralArray(z,y,s, n,t):
