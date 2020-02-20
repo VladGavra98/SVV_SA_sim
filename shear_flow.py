@@ -1,3 +1,10 @@
+"""
+Created on 20-02 16:50
+Shear flow and shear center
+@author: dannywhuang
+@version: 1
+"""
+
 import numpy as np
 import scipy as sp
 import scipy.integrate
@@ -111,6 +118,7 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
     qs3 += qs2[-1]
     #add last value from qs4 to qs3
     qs3 += qs4[-1]
+    print("qs3",qs3)
 
     return qs1,qs2,qs3,qs4,sVec1,sVec2,sVec3,sVec4
 
