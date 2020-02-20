@@ -4,8 +4,10 @@ SVV 2020- Structural Analysis Assignment
 
 Simulation for stress and deflection in A320 Airleron
 
+
 @author: vladg
 @version: 20-02-#1
+
 """
 import numpy as np
 import scipy as sp
@@ -21,12 +23,11 @@ g = 9.81 #m/s2
 
 
 #+++++++++++++++++++++++++++ Main Simulation Functions ++++++++++++++++++++++++++++++++
-
 def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg): #Verified by Vlad & Alberto!
     """Plots the cross-section."""
     fig,ax = plt.subplots()
     plt.title("Cross section")
-    
+
     an = np.linspace(np.pi/2, np.pi*3/2, 100)
     plt.plot(ha/2+ha/2 * np.cos(an), ha/2 * np.sin(an))
     lines = [[(ha/2, ha/2), (ha/2, -ha/2)],
@@ -34,7 +35,7 @@ def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg): #Verified by Vlad & Albe
     lc = mc.LineCollection(lines, linewidths=2)
     ax.add_collection(lc)
     plt.plot(-Zcg, 0, "or",label='Centroid')
-    
+
     plt.grid()
     plt.axis('equal')
     plt.scatter(stringer_posz,stringer_posy,label='Stiffener')
@@ -78,7 +79,7 @@ def calcStPose(ha,ca,nst):   #Verified by Vlad!
         return pos[1]
 
 
-
+#+++++++++++++++++++++++++++++++ Geomtry parameters +++++++++++++++++++++++++++++++++++++++++
 def calcCircum(ha,ca):
     #Stick to the name given in the flow chart OR
     # cleary write what you cahnged
@@ -100,7 +101,7 @@ def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):  #Verified by Vlad!
     sumAreaZ     = np.pi*tsk*(ha/2) * (-ha/2+(2/np.pi)*(ha/2)) + np.linalg.norm([plateYLength,plateZLength])*tsk*2 * (-ha/2 - plateZLength/2)+ ha*tsp*(-ha/2) + sumStAreaZ
 
     sumArea      = np.pi*tsk*(ha/2) + np.linalg.norm([plateYLength,plateZLength])*tsk*2 + ha*tsp + stArea*nst
-    
+
     zCentroid    = sumAreaZ/sumArea
 
     return zCentroid        #note Zcg is negative
@@ -141,55 +142,13 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
 
     return Izz, Iyy
 
-
-#++++++++++++++++++++++++++++++++ Numerical Integration +++++++++++++++++++++++++++++++++
-def integration(function,n,a,b):
-
-    zf = b
-    deltaz = round(zf/n,8)
-    zvector = np.array([0])
-    h = deltaz/2
-    primvector = np.array([0])
-    valuez = 0
-
-    for i in range(n):
-        valuez += deltaz
-        zvector = np.append(zvector,valuez)
-
-
-    for j in range(n):
-        value = h/3*(function(zvector[j]) + 4*function(zvector[j]+h) + function(zvector[j+1]))
-        primvector = np.append(primvector,value)
-
-    A = np.empty([n+1,n+1])
-    for i in range(n+1):
-        for j in range(n+1):
-            A[i,j] = zvector[i]**j
-
-    weights = np.dot(np.linalg.inv(A),np.transpose(primvector))
-    total = np.sum(primvector)
-
-
-    ####  Verification ######
-    #vervec = np.array([0])
-    #verificationtotal = scp.integrate.simps(function(zvector),zvector)
-    #for i in range(n):
-        #vector = np.array([zvector[i],zvector[i+1]])
-        #vervec = np.append(vervec,scp.integrate.simps(function(vector),vector))
-
-    #plt.plot(zvector,vervec)
-    #plt.plot(zvector,primvector)
-    #plt.show()
-
-    return weights,total
-
-
-
+  
 def calcStArea(Tst, Hst, Wst):   #Verified by Vlad!
     #Calculates area of stringer in m^2
     StArea = Tst * (Hst + Wst)
     return StArea
 
+#++++++++++++++++++++++++++++++ Aircraft Class ++++++++++++++++++++++++++++++++++++++++++++
 class Aircraft:
     def __init__(self,name):
         if name=="A320" or name=="a320":
@@ -218,22 +177,23 @@ def main():
 
     craft = Aircraft("A320")
     discret = Discretization()
-    print("Circumference: \n",calcCircum(craft.ha,craft.ca))
+    
+    #print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
     stArea = calcStArea(craft.tst,craft.hst,craft.wst)
-    print("Stringer Area is:\n",stArea)
+    #print("Stringer Area is:\n",stArea)
 
     pos = calcStPose(craft.ha,craft.ca,craft.nst)
-    print("Stringers (y,z) are:\n",pos)
+    #print("Stringers (y,z) are:\n",pos)
 
     Zcg = calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst)
-    print("Centroid z-coordinate is:\n", Zcg)
+    #print("Centroid z-coordinate is:\n", Zcg)
 
     Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
-    print("Izz and Iyy:\n",Izz, Iyy)
+    #print("Izz and Iyy:\n",Izz, Iyy)
 
     zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
-    print("Shear center z-coordinate is:\n", zShear)
+    #print("Shear center z-coordinate is:\n", zShear)
 
     drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg)
     plt.show()
