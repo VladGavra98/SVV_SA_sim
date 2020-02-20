@@ -3,6 +3,7 @@
 Created on Mon Feb 17 14:32:04 2020
 Integgration function
 @author: Luis
+@version: 1 verfied
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -61,5 +62,3 @@ def integration(function,a,b,n):
     	#plt.show()
 
     return primvector[:-1],total
-
-print(integration(f,0,1,100))

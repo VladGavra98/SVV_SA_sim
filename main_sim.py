@@ -5,6 +5,8 @@ SVV 2020- Structural Analysis Assignment
 Simulation for stress and deflection in A320 Airleron
 
 
+=======
+Vesrion 1
 @author: vladg
 @version: 19-02-#1 verified
 """
