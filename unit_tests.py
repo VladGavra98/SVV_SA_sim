@@ -9,7 +9,7 @@ from main_sim import calcCircum, calcStArea, calcStPose, calcInertia,calcCentroi
 import unittest
 import numpy as np
 import scipy as sp
-from Integration import integration
+from integration import integration
 
 EPS = 1e-7
 
