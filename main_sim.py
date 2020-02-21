@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from shear_flow import *
 from matplotlib import collections  as mc
 plt.close('all')
-np.set_printoptions(precision=3)
+np.set_printoptions(precision=7)
 
 #++++++++++++++++++++++++++ Constants +++++++++++++++++++++++++++++++++++++++++++++++++++
 g = 9.81 #m/s2
@@ -88,6 +88,13 @@ def calcCircum(ha,ca):
     """
     return np.pi*ha/2 + 2*(np.sqrt((ca-ha/2)**2 + (ha/2)**2))
 
+def calcCellArea(ha,ca):
+    """Calculate area of left and right cells respectively"""
+    # Input: ha, ca
+    # Output: A1, A2
+    A1 = (np.pi/2)*(ha/2)**2
+    A2 = (ca-ha/2)*(ha/2)
+    return A1,A2
 
 def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):  #Verified by Vlad!
     """Return the z coordinate of the centroid."""
@@ -163,6 +170,8 @@ class Aircraft:
             self.tsp = 0.0029
             self.Ast = calcStArea(self.tst,self.hst,self.wst)
             self.theta = np.radians(26)  #rad
+            self.E = 73.1*10**9     #aluminium 2024-T3
+            self.G = 28*10**9       #aluminium 2024-T3
 
 class Discretization:
     def __init__(self):
@@ -177,11 +186,14 @@ def main():
 
     craft = Aircraft("A320")
     discret = Discretization()
-    
+
     #print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
     stArea = calcStArea(craft.tst,craft.hst,craft.wst)
     #print("Stringer Area is:\n",stArea)
+
+    A1,A2 = calcCellArea(craft.ha,craft.ca)
+    #print("Cell areas are:\n",A1,A2)
 
     pos = calcStPose(craft.ha,craft.ca,craft.nst)
     #print("Stringers (y,z) are:\n",pos)
@@ -194,6 +206,7 @@ def main():
 
     zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
     #print("Shear center z-coordinate is:\n", zShear)
+
 
     drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg)
     plt.show()
