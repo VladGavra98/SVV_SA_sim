@@ -2,7 +2,7 @@
 Created on 20-02 16:50
 Shear flow and shear center
 @author: dannywhuang
-@version: 1
+@version: 21-02
 """
 
 import numpy as np
@@ -11,6 +11,7 @@ import scipy.integrate
 import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
 from main_sim import *
+from integration import *
 
 def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     """Calculates Z coordinate of shear center"""
@@ -23,8 +24,11 @@ def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     plateZLength = ca - ha / 2
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
     # calculate const. sh flow
-    rhs1 = -(-sp.integrate.simps(qs2, sVec2) / tsp + sp.integrate.simps(qs4, sVec4) / tsk)
-    rhs2 = -(sp.integrate.simps(qs1, sVec1) / tsk + sp.integrate.simps(qs2, sVec2) / tsp + sp.integrate.simps(qs3,sVec3) / tsk)
+    #rhs1 = -(-sp.integrate.simps(qs2, sVec2) / tsp + sp.integrate.simps(qs4, sVec4) / tsk)
+    #rhs2 = -(sp.integrate.simps(qs1, sVec1) / tsk + sp.integrate.simps(qs2, sVec2) / tsp + sp.integrate.simps(qs3,sVec3) / tsk)
+    rhs1 = -(-integrationArray(qs2, sVec2[0],sVec2[-1],n2) / tsp + integrationArray(qs4, sVec4[0],sVec4[-1],n4) / tsk)
+    rhs2 = -(integrationArray(qs1, sVec1[0],sVec1[-1],n1) / tsk + integrationArray(qs2, sVec2[0],sVec2[-1],n2) / tsp + integrationArray(qs3, sVec3[0],sVec3[-1],n3) / tsk)
+
     A = np.matrix([[(np.pi * ha) / (2 * tsk) + (ha / tsp), -(ha / tsp)],
                    [-(ha / tsp), (2 * plateLength) / (tsk) + (ha / tsp)]])
     b = np.array([rhs1, rhs2])
@@ -36,9 +40,10 @@ def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     q3 = qs3 + x[1]
     q4 = qs4 + x[0]
 
-    #drawGraph(sVec4,q4)
+    drawGraph(sVec1,q1)
     # calculate moment around center of semi circle to find moment arm
-    zeta = sp.integrate.simps(q4, sVec4)*(ha / 2) + sp.integrate.simps(q1, sVec1) * (plateZLength / plateLength) * (ha / 2) + sp.integrate.simps(q3, sVec3) * (plateZLength / plateLength) * (ha / 2)
+    #zeta = sp.integrate.simps(q4, sVec4)*(ha / 2) + sp.integrate.simps(q1, sVec1) * (plateZLength / plateLength) * (ha / 2) + sp.integrate.simps(q3, sVec3) * (plateZLength / plateLength) * (ha / 2)
+    zeta = integrationArray(q4, sVec4[0],sVec4[-1],n4)*(ha / 2) + integrationArray(q1 ,sVec1[0],sVec1[-1],n1) * (plateZLength / plateLength) * (ha / 2) + integrationArray(q3, sVec3[0],sVec3[-1],n3) * (plateZLength / plateLength) * (ha / 2)
     zShear = -zeta - (ha / 2)
     return zShear
 
@@ -118,7 +123,6 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
     qs3 += qs2[-1]
     #add last value from qs4 to qs3
     qs3 += qs4[-1]
-    print("qs3",qs3)
 
     return qs1,qs2,qs3,qs4,sVec1,sVec2,sVec3,sVec4
 
@@ -138,9 +142,12 @@ def calcIntegralArray(z,y,s, n,t):
     intYVec = np.array([0])
     intZVec = np.array([0])
     for i in range(1, n+1):
-        integralY = sp.integrate.simps(y[:i + 1], s[:i + 1])
+        #integralY = sp.integrate.simps(y[:i + 1], s[:i + 1])
+        integralY = integrationArray(y[:i+1],s[0],s[i],i)
         intYVec = np.append(intYVec, integralY)
-        integralZ = sp.integrate.simps(z[:i + 1], s[:i + 1])
+
+        #integralZ = sp.integrate.simps(z[:i + 1], s[:i + 1])
+        integralZ = integrationArray(z[:i+1],s[0],s[i],i)
         intZVec = np.append(intZVec, integralZ)
 
     return t*intYVec,t*intZVec
