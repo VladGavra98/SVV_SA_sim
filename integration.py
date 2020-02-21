@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Feb 17 14:32:04 2020
-Integgration function
-@author: Luis
-@version: 1 verfied
+Integration function
+@author: Luis, dannywhuang
+@version: 21-02
 """
+
 import numpy as np
+import scipy.integrate
 import matplotlib.pyplot as plt
 
 
@@ -62,3 +64,49 @@ def integration(function,a,b,n):
     	#plt.show()
 
     return primvector[:-1],total
+
+def integrationArray(y,a,b,n):
+    """Integration with arrays as input"""
+    # y = array with function values
+    # a = lower bound of integration
+    # b = upper bound of integration
+    # n = amount of grids, n + 1 = amount of grid points
+
+    Ny = len(y)
+
+    if Ny != n+1:
+        raise ValueError("Array length is not the same as the amount of grid points")
+
+    if b>=a:
+        h = (b-a)/n
+        z0 = a
+        zf = b
+    elif b<a:
+        h = (a-b)/n
+        z0 = b
+        zf = a
+
+    if Ny%2==0:
+        # if number of points is even, take average of
+        # trapezoidal on first two points, simpson's on the rest
+        # trapezoidal on last two points, simpson's on the rest
+        value1 = (h/2)*(y[1]+y[0])
+        value1 += (h/3)*np.sum(y[1:-2:2]+4*y[2:-1:2]+y[3::2])
+
+        value2 = (h/2)*(y[-1]+y[-2])
+        value2 += (h/3)*np.sum(y[0:-3:2]+4*y[1:-2:2]+y[2:-1:2])
+
+        return (value1+value2)/2
+
+    elif Ny%2==1:
+        # if number is uneven just simpson's rule is used
+
+        value = (h/3)*np.sum(y[0:-1:2]+4*y[1:-1:2]+y[2::2])
+        return value
+
+#Verification of integrationArra
+#x = np.linspace(0,1,2)
+#y = x*x
+#
+#print(integrationArray(y,0,1,1))
+#print(scipy.integrate.simps(y,x))
