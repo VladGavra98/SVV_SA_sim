@@ -5,7 +5,7 @@ SVV 2020- Structural Analysis Assignment
 Simulation for stress and deflection in A320 Airleron
 19/02 morning session
 @author: vladg
-@version: 19-02-#1
+@version: 20-02-#1
 """
 import numpy as np
 import scipy as sp
