@@ -15,6 +15,7 @@ import scipy.integrate
 import matplotlib.pyplot as plt
 from shear_flow import *
 from matplotlib import collections  as mc
+
 plt.close('all')
 np.set_printoptions(precision=3)
 
@@ -153,9 +154,9 @@ def VonMisses(sigma,tau):
     B = np.power(tau,2)
     return np.sqrt(A/2 + 3*B)
 
-def calcStArea(Tst, Hst, Wst):   #Verified by Vlad!
+def calcStArea(tst, hst, wst):   #Verified by Vlad!
     #Calculates area of stringer in m^2
-    StArea = Tst * (Hst + Wst)
+    StArea = tst * (hst + wst)
     return StArea
 
 #++++++++++++++++++++++++++++++ Aircraft Class ++++++++++++++++++++++++++++++++++++++++++++
