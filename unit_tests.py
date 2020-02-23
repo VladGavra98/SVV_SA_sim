@@ -8,6 +8,8 @@ This meant to be used for the tests of units & modules.
 from main_sim import calcCircum, calcStArea, calcStPose, calcInertia,calcCentroid,drawSection
 import unittest
 import numpy as np
+import scipy as sp
+from integration import integration
 
 EPS = 1e-7
 
@@ -47,6 +49,11 @@ class TestStringMethods(unittest.TestCase):
     def test_calcInertia(self):
         Izz_ver = 1.28074562408502e-05
         Iyy_ver = 6.86413733566373e-05   #from verification model
+
+    def test_integral():
+
+
+        assert integration()
 
 if __name__ == '__main__':
     unittest.main()
