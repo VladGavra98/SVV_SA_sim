@@ -91,7 +91,7 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
     q3 = x[1]
     q4 = x[0]
 
-    return q1,q2,q3,q4
+    return q1,q2,q3,q4,x[0],x[1],x[2]
 
 
 def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):

@@ -149,7 +149,13 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
 
     return Izz, Iyy
 
-  
+def calcTorsionStiffness(ha,ca,tsk,tsp,G):
+    # Calculate torsional stiffness
+    T = 1
+    q1,q2,q3,q4,q01,q02,dthetadx = calcShFlowTorque(ha,ca,tsk,tsp,G,T)
+    J = T/(G*dthetadx)
+    return J
+
 def calcStArea(Tst, Hst, Wst):   #Verified by Vlad!
     #Calculates area of stringer in m^2
     StArea = Tst * (Hst + Wst)
@@ -203,6 +209,9 @@ def main():
 
     Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
     #print("Izz and Iyy:\n",Izz, Iyy)
+
+    J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
+    print("J:\n",J)
 
     zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
     #print("Shear center z-coordinate is:\n", zShear)
