@@ -29,4 +29,3 @@ main_sim.py :
   -circCalc()        -- length of the circumference (aslo used in shear flow)
 integration.py
 interpolation.py
-
