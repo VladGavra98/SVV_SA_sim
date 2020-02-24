@@ -5,10 +5,15 @@ This meant to be used for the tests of units & modules.
 @author: vladg
 """
 
-from main_sim import calcCircum, calcStArea, calcStPose, calcInertia,calcCentroid,drawSection
+from main_sim import *
 import unittest
+from shear_flow import *
 import numpy as np
+import scipy as sp
+from integration import integration
+from interpolation import interpolate
 
+#Constants:
 EPS = 1e-7
 
 aircraft = "A320" # Write either A320, F100, CRJ700 or Do228 (bear in mind capitals); this is used for aerodynamic loading
@@ -45,8 +50,13 @@ class TestStringMethods(unittest.TestCase):
         assert (abs(( zc-zc_ver) / zc_ver) *100 <= 2) == True
 
     def test_calcInertia(self):
-        Izz_ver = 1.28074562408502e-05
-        Iyy_ver = 6.86413733566373e-05   #from verification model
+        Izz_ver = 1.28074562408502e-05   #correct
+        Iyy_ver = 6.86413733566373e-05   #correct
+
+    def test_integral():
+
+
+        assert integration()
 
 if __name__ == '__main__':
     unittest.main()
