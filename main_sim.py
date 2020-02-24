@@ -6,7 +6,7 @@ Simulation for stress and deflection in A320 Airleron
 
 
 @author: vladg
-@version: 21-02-#2
+@version: 24-02-#3
 
 """
 import numpy as np
@@ -17,7 +17,7 @@ from shear_flow import *
 from matplotlib import collections  as mc
 
 plt.close('all')
-np.set_printoptions(precision=3)
+np.set_printoptions(precision=7)
 
 #++++++++++++++++++++++++++ Constants +++++++++++++++++++++++++++++++++++++++++++++++++++
 g = 9.81 #m/s2
@@ -90,6 +90,13 @@ def calcCircum(ha,ca):
     """
     return np.pi*ha/2 + 2*(np.sqrt((ca-ha/2)**2 + (ha/2)**2))
 
+def calcCellArea(ha,ca):
+    """Calculate area of left and right cells respectively"""
+    # Input: ha, ca
+    # Output: A1, A2
+    A1 = (np.pi/2)*(ha/2)**2
+    A2 = (ca-ha/2)*(ha/2)
+    return A1,A2
 
 def calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst):  #Verified by Vlad!
     """Return the z coordinate of the centroid."""
@@ -154,6 +161,14 @@ def VonMisses(sigma,tau):
     B = np.power(tau,2)
     return np.sqrt(A/2 + 3*B)
 
+
+def calcTorsionStiffness(ha,ca,tsk,tsp,G):
+    # Calculate torsional stiffness
+    T = 1
+    q1,q2,q3,q4,q01,q02,dthetadx = calcShFlowTorque(ha,ca,tsk,tsp,G,T)
+    J = T/(G*dthetadx)
+    return J
+
 def calcStArea(tst, hst, wst):   #Verified by Vlad!
     #Calculates area of stringer in m^2
     StArea = tst * (hst + wst)
@@ -174,6 +189,8 @@ class Aircraft:
             self.tsp = 0.0029
             self.Ast = calcStArea(self.tst,self.hst,self.wst)
             self.theta = np.radians(26)  #rad
+            self.E     = 73.1*10**9     #aluminium 2024-T3
+            self.G     = 28*10**9       #aluminium 2024-T3
 
 class Discretization:
     def __init__(self):
@@ -194,6 +211,9 @@ def main():
     stArea = calcStArea(craft.tst,craft.hst,craft.wst)
     #print("Stringer Area is:\n",stArea)
 
+    A1,A2 = calcCellArea(craft.ha,craft.ca)
+    #print("Cell areas are:\n",A1,A2)
+
     pos = calcStPose(craft.ha,craft.ca,craft.nst)
     #print("Stringers (y,z) are:\n",pos)
 
@@ -202,6 +222,7 @@ def main():
 
     Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
     #print("Izz and Iyy:\n",Izz, Iyy)
+
 
     q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, discret.n1,discret.n2,discret.n3,discret.n4)
     print("Shear flows are:\n", q)
@@ -213,6 +234,17 @@ def main():
     print("Von Misses stress are:\n",vm)
 
     drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
+
+
+    J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
+    print("J:\n",J)
+
+    zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
+    #print("Shear center z-coordinate is:\n", zShear)
+
+
+    drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg)
+    plt.show()
 
 if __name__ == "__main__":
     main()
