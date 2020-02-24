@@ -13,7 +13,6 @@ from integration import *
 
 def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     """Calculates Z coordinate of shear center (according to the used coordiante system)"""
-=======
     #---------------------------------------------------
     # Calculates Z coordinate of shear center
     #
