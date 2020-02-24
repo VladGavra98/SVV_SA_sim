@@ -1,16 +1,16 @@
-   ODB: C:/Scratch/B737.odb
-   Step: Bending
-   Frame: Increment      1: Step Time =    1.000
-
-Loc 1 : Nodal values from source 1
-
-Output sorted by column "Node Label".
-
-Field Output reported at nodes for part: B737-1
-
-      Node Label     U.Magnitude            U.U1            U.U2            U.U3
-                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
----------------------------------------------------------------------------------
+#   ODB: C:/Scratch/B737.odb
+#   Step: Bending
+#   Frame: Increment      1: Step Time =    1.000
+#
+#Loc 1 : Nodal values from source 1
+#
+#Output sorted by column "Node Label".
+#
+#Field Output reported at nodes for part: B737-1
+#
+#      Node Label     U.Magnitude            U.U1            U.U2            U.U3
+#                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
+#------------------------------------------------#---------------------------------
                1         19.5985         1.85903         17.2170        -9.17729
                2         18.3084         1.85903         16.0346        -8.63905
                3         18.7111         2.80221         16.2458        -8.85025
@@ -6599,22 +6599,22 @@ Field Output reported at nodes for part: B737-1
             6586         13.1987        -2.27349         11.4412        -6.17540
             6587         13.5470        -2.27349         11.7678        -6.31431
             6588         13.8955        -2.27349         12.0943        -6.45323
-
-
-  Minimum                     0.        -2.82159    -210.386E-03        -9.38849
-         At Node             726             452               7               4
-
-  Maximum                20.8069         2.96563         18.4636     210.386E-03
-         At Node              19            1185              19              27
-
-           Total     47.8358E+03        -208.773     41.7382E+03    -21.8494E+03
-
-
-Field Output reported at nodes for part: ASSEMBLY
-
-      Node Label     U.Magnitude            U.U1            U.U2            U.U3
-                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
----------------------------------------------------------------------------------
+#
+#
+#  Minimum                     0.        -2.82159    -210.386E-03        -9.38849
+#         At Node             726             452               7               4
+#
+#  Maximum                20.8069         2.96563         18.4636     210.386E-03
+#         At Node              19            1185              19              27
+#
+#           Total     47.8358E+03        -208.773     41.7382E+03    -21.8494E+03
+#
+#
+#Field Output reported at nodes for part: ASSEMBLY
+#
+#      Node Label     U.Magnitude            U.U1            U.U2            U.U3
+#                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
+#---------------------------------------------------------------------------------
                1         11.5682    -807.660E-03         10.1890        -5.41819
                2     387.338E-03     22.0754E-03     341.435E-03    -181.565E-03
                3         18.4311         1.07089         16.2458        -8.63905
@@ -6631,12 +6631,12 @@ Field Output reported at nodes for part: ASSEMBLY
               14         14.6770     681.127E-03         12.9272        -6.91636
               15         19.7980     696.047E-03         17.5286        -9.17729
               16              0.    -9.35945E-36     32.2680E-36    -121.177E-36
-
-
-  Minimum                     0.    -807.660E-03     32.2680E-36        -9.17729
-         At Node              16               1              16              15
-
-  Maximum                19.7980         1.07089         17.5286    -121.177E-36
-         At Node              15               3              15              16
-
-           Total         116.846         1.26554         102.727        -55.0882
+#
+#
+#  Minimum                     0.    -807.660E-03     32.2680E-36        -9.17729
+#         At Node              16               1              16              15
+#
+#  Maximum                19.7980         1.07089         17.5286    -121.177E-36
+#         At Node              15               3              15              16
+#
+#           Total         116.846         1.26554         102.727        -55.0882

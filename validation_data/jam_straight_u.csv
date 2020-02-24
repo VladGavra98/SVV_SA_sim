@@ -1,16 +1,16 @@
-   ODB: C:/Scratch/B737.odb
-   Step: Jam_Straight
-   Frame: Increment      1: Step Time =    1.000
-
-Loc 1 : Nodal values from source 1
-
-Output sorted by column "Node Label".
-
-Field Output reported at nodes for part: B737-1
-
-      Node Label     U.Magnitude            U.U1            U.U2            U.U3
-                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
----------------------------------------------------------------------------------
+#   ODB: C:/Scratch/B737.odb
+#   Step: Jam_Straight
+#   Frame: Increment      1: Step Time =    1.000
+#
+#Loc 1 : Nodal values from source 1
+#
+#Output sorted by column "Node Label".
+#
+#Field Output reported at nodes for part: B737-1
+#
+#      Node Label     U.Magnitude            U.U1            U.U2            U.U3
+#                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
+#---------------------------------------------------------------------------------
                1         2.36233    -234.672E-03         2.35039     35.1522E-03
                2         2.17829    -234.672E-03         2.16561     1.55431E-15
                3         2.16748     90.0735E-03    -1.44329E-15         2.16561
@@ -6599,22 +6599,22 @@ Field Output reported at nodes for part: B737-1
             6586         1.81299     12.2274E-03     290.203E-03         1.78957
             6587         1.79487     12.3143E-03     240.364E-03         1.77866
             6588         1.77801     12.2402E-03     190.223E-03         1.76776
-
-
-  Minimum                     0.    -461.957E-03        -12.1412        -2.59895
-         At Node             726            4245             423             492
-
-  Maximum                12.1492     399.987E-03         2.93297         2.33466
-         At Node             423             551             219             280
-
-           Total     28.9516E+03        -737.409    -22.7238E+03        -340.791
-
-
-Field Output reported at nodes for part: ASSEMBLY
-
-      Node Label     U.Magnitude            U.U1            U.U2            U.U3
-                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
----------------------------------------------------------------------------------
+#
+#
+#  Minimum                     0.    -461.957E-03        -12.1412        -2.59895
+#         At Node             726            4245             423             492
+#
+#  Maximum                12.1492     399.987E-03         2.93297         2.33466
+#         At Node             423             551             219             280
+#
+#           Total     28.9516E+03        -737.409    -22.7238E+03        -340.791
+#
+#
+#Field Output reported at nodes for part: ASSEMBLY
+#
+#      Node Label     U.Magnitude            U.U1            U.U2            U.U3
+#                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
+#---------------------------------------------------------------------------------
                1     175.263E-03    -175.263E-03     8.86226E-36     16.6656E-36
                2         3.10298     292.011E-03         2.72754        -1.45043
                3     183.199E-03    -183.199E-03    -6.21301E-36    -11.6836E-36
@@ -6631,12 +6631,12 @@ Field Output reported at nodes for part: ASSEMBLY
               14         1.62910    -155.776E-03        -1.61551    -140.847E-03
               15     861.327E-03    -158.718E-03    -845.847E-03     35.1522E-03
               16              0.    -342.643E-39    -2.95378E-36     7.60049E-36
-
-
-  Minimum                     0.    -183.199E-03        -2.57882        -2.53737
-         At Node              16               3              12               4
-
-  Maximum                3.10298     371.809E-03         2.72754     404.184E-03
-         At Node               2               4               2               8
-
-           Total         21.0185        -1.00467        -9.57804        -4.51985
+#
+#
+#  Minimum                     0.    -183.199E-03        -2.57882        -2.53737
+#         At Node              16               3              12               4
+#
+#  Maximum                3.10298     371.809E-03         2.72754     404.184E-03
+#         At Node               2               4               2               8
+#
+#           Total         21.0185        -1.00467        -9.57804        -4.51985

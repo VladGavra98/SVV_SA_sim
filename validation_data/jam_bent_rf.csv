@@ -1,16 +1,16 @@
-   ODB: C:/Scratch/B737.odb
-   Step: Jam_Bent
-   Frame: Increment      1: Step Time =    1.000
-
-Loc 1 : Nodal values from source 1
-
-Output sorted by column "Node Label".
-
-Field Output reported at nodes for part: B737-1
-
-      Node Label    RF.Magnitude          RF.RF1          RF.RF2          RF.RF3
-                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
----------------------------------------------------------------------------------
+#   ODB: C:/Scratch/B737.odb
+#   Step: Jam_Bent
+#   Frame: Increment      1: Step Time =    1.000
+#
+#Loc 1 : Nodal values from source 1
+#
+#Output sorted by column "Node Label".
+#
+#Field Output reported at nodes for part: B737-1
+#
+#      Node Label    RF.Magnitude          RF.RF1          RF.RF2          RF.RF3
+#                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
+#---------------------------------------------------------------------------------
                1              0.              0.              0.              0.
                2              0.              0.              0.              0.
                3              0.              0.              0.              0.
@@ -6599,22 +6599,22 @@ Field Output reported at nodes for part: B737-1
             6586              0.              0.              0.              0.
             6587              0.              0.              0.              0.
             6588              0.              0.              0.              0.
-
-
-  Minimum                     0.              0.              0.              0.
-         At Node            6588            6588            6588            6588
-
-  Maximum                     0.              0.              0.              0.
-         At Node            6588            6588            6588            6588
-
-           Total              0.              0.              0.              0.
-
-
-Field Output reported at nodes for part: ASSEMBLY
-
-      Node Label    RF.Magnitude          RF.RF1          RF.RF2          RF.RF3
-                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
----------------------------------------------------------------------------------
+#
+#
+#  Minimum                     0.              0.              0.              0.
+#         At Node            6588            6588            6588            6588
+#
+#  Maximum                     0.              0.              0.              0.
+#         At Node            6588            6588            6588            6588
+#
+#           Total              0.              0.              0.              0.
+#
+#
+#Field Output reported at nodes for part: ASSEMBLY
+#
+#      Node Label    RF.Magnitude          RF.RF1          RF.RF2          RF.RF3
+#                          @Loc 1          @Loc 1          @Loc 1          @Loc 1
+#---------------------------------------------------------------------------------
                1         87.8409              0.         12.0642        -87.0085
                2         114.358              0.         53.6925         100.969
                3         47.6935              0.         22.9675        -41.7991
@@ -6631,12 +6631,12 @@ Field Output reported at nodes for part: ASSEMBLY
               14              0.              0.              0.              0.
               15              0.              0.              0.              0.
               16         117.289     315.303E-15        -28.2536         113.835
-
-
-  Minimum                     0.              0.        -28.2536        -87.0085
-         At Node              15              15              16               1
-
-  Maximum                117.289     315.303E-15         53.6925         113.835
-         At Node              16              16               2              16
-
-           Total         367.181     315.303E-15         60.4706         85.9969
+#
+#
+#  Minimum                     0.              0.        -28.2536        -87.0085
+#         At Node              15              15              16               1
+#
+#  Maximum                117.289     315.303E-15         53.6925         113.835
+#         At Node              16              16               2              16
+#
+#           Total         367.181     315.303E-15         60.4706         85.9969

@@ -1,17 +1,17 @@
-   ODB: C:/Scratch/B737.odb
-   Step: Jam_Straight
-   Frame: Increment      1: Step Time =    1.000
-
-Loc 1 : Integration point values at shell < ALUMINIUM > < 5 section points > from source 1 : SNEG, (fraction = -1.0)
-Loc 2 : Integration point values at shell < ALUMINIUM > < 5 section points > from source 1 : SPOS, (fraction = 1.0)
-
-Output sorted by column "Element Label".
-
-Field Output reported at integration points for region: B737-1.Region_1
-
-   Element Label             Int         S.Mises         S.Mises           S.S12           S.S12
-                              Pt          @Loc 1          @Loc 2          @Loc 1          @Loc 2
--------------------------------------------------------------------------------------------------
+#   ODB: C:/Scratch/B737.odb
+#   Step: Jam_Straight
+#   Frame: Increment      1: Step Time =    1.000
+#
+#Loc 1 : Integration point values at shell < ALUMINIUM > < 5 section points > from source 1 : SNEG, (fraction = -1.0)
+#Loc 2 : Integration point values at shell < ALUMINIUM > < 5 section points > from source 1 : SPOS, (fraction = 1.0)
+#
+#Output sorted by column "Element Label".
+#
+#Field Output reported at integration points for region: B737-1.Region_1
+#
+#   Element Label             Int         S.Mises         S.Mises           S.S12           S.S12
+#                              Pt          @Loc 1          @Loc 2          @Loc 1          @Loc 2
+#-------------------------------------------------------------------------------------------------
                1               1     1.17386E-03     1.17080E-03    -677.523E-06    -675.461E-06
                2               1     1.21351E-03     1.17511E-03    -700.218E-06    -678.258E-06
                3               1     1.17670E-03     1.15851E-03    -678.945E-06    -667.276E-06
@@ -5790,24 +5790,24 @@ Field Output reported at integration points for region: B737-1.Region_1
             6632               1     475.249E-06     494.066E-06    -218.115E-06    -260.827E-06
             6633               1     425.994E-06     410.666E-06    -207.327E-06    -225.525E-06
             6634               1     480.162E-06     687.142E-06    -134.667E-06    -140.514E-06
-
-
-  Minimum                            178.435E-06     155.774E-06    -48.4581E-03    -47.0573E-03
-      At Element                            6519            6519             324             324
-          Int Pt                               1               1               1               1
-
-  Maximum                            176.085E-03     184.287E-03     83.0117E-03     83.3007E-03
-      At Element                            5370            5369            5181            5181
-          Int Pt                               1               1               1               1
-
-           Total                         195.510         197.499         15.3365         15.7870
-
-
-Field Output reported at integration points for region: B737-1.Region_2
-
-   Element Label             Int         S.Mises         S.Mises           S.S12           S.S12
-                              Pt          @Loc 1          @Loc 2          @Loc 1          @Loc 2
--------------------------------------------------------------------------------------------------
+#
+#
+#  Minimum                            178.435E-06     155.774E-06    -48.4581E-03    -47.0573E-03
+#      At Element                            6519            6519             324             324
+#          Int Pt                               1               1               1               1
+#
+#  Maximum                            176.085E-03     184.287E-03     83.0117E-03     83.3007E-03
+#      At Element                            5370            5369            5181            5181
+#          Int Pt                               1               1               1               1
+#
+#           Total                         195.510         197.499         15.3365         15.7870
+#
+#
+#Field Output reported at integration points for region: B737-1.Region_2
+#
+#   Element Label             Int         S.Mises         S.Mises           S.S12           S.S12
+#                              Pt          @Loc 1          @Loc 2          @Loc 1          @Loc 2
+#-------------------------------------------------------------------------------------------------
             1732               1     12.4162E-03     12.4037E-03    -6.47134E-03    -6.84789E-03
             1733               1     15.0294E-03     15.3551E-03    -8.65376E-03    -8.81696E-03
             1734               1     16.2372E-03     16.1694E-03    -9.34927E-03    -9.25830E-03
@@ -6664,14 +6664,14 @@ Field Output reported at integration points for region: B737-1.Region_2
             6506               1     15.2376E-03     15.4330E-03    -8.71748E-03    -8.85885E-03
             6507               1     14.9074E-03     14.4895E-03    -8.47550E-03    -8.31477E-03
             6508               1     11.6281E-03     11.8185E-03    -6.68866E-03    -5.96531E-03
-
-
-  Minimum                            933.970E-06     964.032E-06    -22.2738E-03    -22.3539E-03
-      At Element                            5414            5414            6229            6229
-          Int Pt                               1               1               1               1
-
-  Maximum                            131.510E-03     112.371E-03     57.6387E-03     59.6925E-03
-      At Element                            3875            3900            3928            3925
-          Int Pt                               1               1               1               1
-
-           Total                         27.7938         27.7896    -302.146E-03    -176.749E-03
+#
+#
+#  Minimum                            933.970E-06     964.032E-06    -22.2738E-03    -22.3539E-03
+#      At Element                            5414            5414            6229            6229
+#          Int Pt                               1               1               1               1
+#
+#  Maximum                            131.510E-03     112.371E-03     57.6387E-03     59.6925E-03
+#      At Element                            3875            3900            3928            3925
+#          Int Pt                               1               1               1               1
+#
+#           Total                         27.7938         27.7896    -302.146E-03    -176.749E-03
