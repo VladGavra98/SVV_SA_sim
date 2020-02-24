@@ -162,7 +162,7 @@ def VonMisses(sigma,tau):
     return np.sqrt(A/2 + 3*B)
 
 
-def calcTorsionStiffness(ha,ca,tsk,tsp,G):
+def calcTorsionStiffness(ha,ca,tsk,tsp,G): #Verified by Danny!
     # Calculate torsional stiffness
     T = 1
     q1,q2,q3,q4,q01,q02,dthetadx = calcShFlowTorque(ha,ca,tsk,tsp,G,T)
