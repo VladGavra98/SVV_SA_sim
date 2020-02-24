@@ -6,7 +6,7 @@ Simulation for stress and deflection in A320 Airleron
 
 
 @author: vladg
-@version: 20-02-#1
+@version: 24-02-#3
 
 """
 import numpy as np
@@ -15,6 +15,7 @@ import scipy.integrate
 import matplotlib.pyplot as plt
 from shear_flow import *
 from matplotlib import collections  as mc
+
 plt.close('all')
 np.set_printoptions(precision=7)
 
@@ -23,7 +24,7 @@ g = 9.81 #m/s2
 
 
 #+++++++++++++++++++++++++++ Main Simulation Functions ++++++++++++++++++++++++++++++++
-def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg): #Verified by Vlad & Alberto!
+def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg,Zsc): #Verified by Vlad & Alberto!
     """Plots the cross-section."""
     fig,ax = plt.subplots()
     plt.title("Cross section")
@@ -34,8 +35,9 @@ def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg): #Verified by Vlad & Albe
              [(ha/2,ha/2),(ca,0)],[(ha/2,-ha/2),(ca,0)]]
     lc = mc.LineCollection(lines, linewidths=2)
     ax.add_collection(lc)
-    plt.plot(-Zcg, 0, "or",label='Centroid')
-
+    #Draw the centroid and Shear Centre
+    plt.plot(-Zcg, 0, "og",label='Centroid')
+    plt.plot(-Zsc,0,"or",label="S.C.")
     plt.grid()
     plt.axis('equal')
     plt.scatter(stringer_posz,stringer_posy,label='Stiffener')
@@ -127,7 +129,7 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
     I_zz1 = 1/12*Tsp*H**3
     Beta_plate = np.arctan2((H/2),(Ca-H/2))
     I_zz2 = 1/12*Tsk*(2*Lsk)**3*(np.sin(Beta_plate))**2
-    I_zz3 = 0.5*1/8*np.pi*Tsk*H**3
+    I_zz3 = 2*(np.pi/4) *Tsk * ((H/2)**3) #0.5*1/8*np.pi*Tsk*H**3
     I_zz4 = Ast*sum(StPos[0,:]**2) #calcStPos gives list of coordinates (y,z)
 
     Izz = I_zz1 + I_zz2+I_zz3+I_zz4
@@ -149,6 +151,17 @@ def calcInertia(Ca,H,Tsk,Tsp,Tst,Ast,Zcg,StPos):
 
     return Izz, Iyy
 
+def VonMisses(sigma,tau):
+    """Returns the combined loading stress according to von Misses yeild criterion.
+    Input:
+           sigma = [[z],[y],[sigma_x]]
+
+            """
+    A = np.power(sigma[2,:],2)
+    B = np.power(tau,2)
+    return np.sqrt(A/2 + 3*B)
+
+
 def calcTorsionStiffness(ha,ca,tsk,tsp,G):
     # Calculate torsional stiffness
     T = 1
@@ -156,9 +169,9 @@ def calcTorsionStiffness(ha,ca,tsk,tsp,G):
     J = T/(G*dthetadx)
     return J
 
-def calcStArea(Tst, Hst, Wst):   #Verified by Vlad!
+def calcStArea(tst, hst, wst):   #Verified by Vlad!
     #Calculates area of stringer in m^2
-    StArea = Tst * (Hst + Wst)
+    StArea = tst * (hst + wst)
     return StArea
 
 #++++++++++++++++++++++++++++++ Aircraft Class ++++++++++++++++++++++++++++++++++++++++++++
@@ -176,8 +189,8 @@ class Aircraft:
             self.tsp = 0.0029
             self.Ast = calcStArea(self.tst,self.hst,self.wst)
             self.theta = np.radians(26)  #rad
-            self.E = 73.1*10**9     #aluminium 2024-T3
-            self.G = 28*10**9       #aluminium 2024-T3
+            self.E     = 73.1*10**9     #aluminium 2024-T3
+            self.G     = 28*10**9       #aluminium 2024-T3
 
 class Discretization:
     def __init__(self):
@@ -210,6 +223,19 @@ def main():
     Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
     #print("Izz and Iyy:\n",Izz, Iyy)
 
+
+    q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, discret.n1,discret.n2,discret.n3,discret.n4)
+    print("Shear flows are:\n", q)
+
+    Zsc = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
+    #print("Shear center z-coordinate is:\n", zShear)
+
+    vm  = VonMisses(np.array([[0],[0],[0]]),q)
+    print("Von Misses stress are:\n",vm)
+
+    drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
+
+
     J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
     print("J:\n",J)
 
@@ -219,5 +245,7 @@ def main():
 
     drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg)
     plt.show()
+
 if __name__ == "__main__":
     main()
+    plt.show()
