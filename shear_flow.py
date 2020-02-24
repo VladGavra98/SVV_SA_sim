@@ -6,14 +6,14 @@ Shear flow and shear center
 """
 
 import numpy as np
-import scipy as sp
-import scipy.integrate
 import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
 from main_sim import *
 from integration import *
 
 def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
+    """Calculates Z coordinate of shear center (according to the used coordiante system)"""
+=======
     #---------------------------------------------------
     # Calculates Z coordinate of shear center
     #
@@ -31,6 +31,10 @@ def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     plateYLength = ha / 2
     plateZLength = ca - ha / 2
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
+
+
+    #Let's draw some stuff...
+    drawGraph(sVec1,q1)
 
     # calculate moment around center of semi circle to find moment arm
     zeta = integrationArray(q4, sVec4[0],sVec4[-1],n4)*(ha / 2) + integrationArray(q1 ,sVec1[0],sVec1[-1],n1) * (plateZLength / plateLength) * (ha / 2) + integrationArray(q3, sVec3[0],sVec3[-1],n3) * (plateZLength / plateLength) * (ha / 2)
@@ -91,10 +95,21 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
     q3 = x[1]
     q4 = x[0]
 
-    return q1,q2,q3,q4
+    return q1,q2,q3,q4,x[0],x[1],x[2]
 
 
 def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
+
+    """Calculate open section shear flow
+        Input:
+        Output:
+            """
+
+    print("Calculating shear flows...")
+
+    zCentroid   = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
+    stArea      = calcStArea(tst,hst,wst)
+
     #---------------------------------------------------
     # Calculate shear flow, under condition that the shear forces act through the shear center
     #
@@ -111,8 +126,9 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
     # geometry calculations
     zCentroid = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
     stArea = calcStArea(tst,hst,wst)
+
     stringerPos = calcStPose(ha, ca, nst)
-    Izz,Iyy = calcInertia(ca, ha, tsk, tsp, tst, stArea, zCentroid, stringerPos)
+    Izz,Iyy     = calcInertia(ca, ha, tsk, tsp, tst, stArea, zCentroid, stringerPos)
 
     # calculate stringer coordinates w.r.t. centroid
     stringerPosCentroid = stringerPos
@@ -221,16 +237,22 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
 
     return q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4
 
-
+#++++++++++++++++++++++++++++ Draw shear flow +++++++++++++++++++++++++++++++++++++++
 def drawGraph(x,y):
+
+    """Helper function to draw graphs"""
+
+    print("Draw shear flow distribution...")
+
     #---------------------------------------------------
     # Helper function to draw graphs
     #
     #---------------------------------------------------
+
     fig, ax = plt.subplots()
     plt.title("Shear Flow")
     plt.plot(x,y)
-    plt.grid()
+    plt.grid(True)
     ax.autoscale()
     plt.show()
 
