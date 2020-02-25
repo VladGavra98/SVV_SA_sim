@@ -13,6 +13,7 @@ from integration import *
 
 def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     """Calculates Z coordinate of shear center (according to the used coordiante system)"""
+
     #---------------------------------------------------
     # Calculates Z coordinate of shear center
     #
@@ -53,8 +54,8 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
     # output:   description:                                                                            type:
     # q1        shear flow in upper plate, positive in direction of increasing y and increasing z       value
     # q2        shear flow in spar, positive in direction of decreasing y                               value
-    # q3        shear flow in lower plate, positive in direction of decreasing y and decreasing z       value
-    # q4        shear flow in semicircle, positive in direction of decreasing y                         value
+    # q3        shear flow in lower plate, positive in direction of increasing y and decreasing z       value
+    # q4        shear flow in semicircle, positive in direction of decreasing y (c.c)                        value
     #
     # q1, q2, q3, q4 are singular values that need to be added to the shear flow caused by shear forces acting through the shear center (calcShFlow)
     #
@@ -75,10 +76,11 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
     a23 = -1
     a31 = 2*A1
     a32 = 2*A2
-    a33 = 0
+    a33 = 0  #only two closed sections, so this must twist rate
     A = np.matrix([[a11,a12,a13],
                    [a21,a22,a23],
                    [a31,a32,a33]])
+
     b = np.array([0,
                   0,
                   T])
