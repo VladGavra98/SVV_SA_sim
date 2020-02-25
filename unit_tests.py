@@ -34,7 +34,10 @@ d1 = 0.01154  # m change
 d3 = 0.01840  # m change
 theta = np.radians(26)  # rad
 P = 97.4*1000  # N
+E = 73.1*10**9       # E-modulus (Pa)
+G = 28*10**9       # G-modulus (Pa)
 
+craft = Aircraft("A320")
 
 class TestStringMethods(unittest.TestCase):
 
@@ -47,17 +50,19 @@ class TestStringMethods(unittest.TestCase):
     def test_calcCentroid(self):
         zc_ver = -0.21577972811362234
         zc     = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
-        print(zc)
+
         assert (abs(( zc-zc_ver) / zc_ver) *100 <= 2) == True
 
     def test_calcInertia(self):
         Izz_ver = 1.28074562408502e-05   #correct
         Iyy_ver = 6.86413733566373e-05   #correct
+        Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,craft.Zcg,craft.StPos)
+        assert (abs((Izz-Izz_ver) / Izz_ver) *100 <= 0.1) == True
 
-    def test_integral(self):
-
-
-        return 0
+    def test_torsion(self):
+        J_ver = 1.663139269310244e-05
+        J = calcTorsionStiffness(ha,ca,tsk,tsp,G)
+        assert (abs((J-J_ver) / J_ver) *100 <= 1) == True
 
 if __name__ == '__main__':
     unittest.main()
