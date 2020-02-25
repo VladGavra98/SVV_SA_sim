@@ -8,7 +8,8 @@ Created on Wed Feb 19 12:07:36 2020
 from interpolation import interpolate
 import numpy as np
 import math as m
-import scipy as sc
+import scipy as sc #for verification
+import scipy.interpolate
 import matplotlib.pyplot as plt
 
 
@@ -17,7 +18,7 @@ import matplotlib.pyplot as plt
 #################################################
 filename="aerodynamicloada320.dat"
 data = np.loadtxt(filename, delimiter=",")
-d_x = np.transpose(data)  
+d_x = np.transpose(data)
 
 Nx = (len(d_x[:,0]))-1
 Nz = (len(d_x[0,:]))-1
@@ -33,13 +34,13 @@ x = []
 for i in range(Nx+1):
     x_local = (la/4)*((1-m.cos(i*m.pi/(Nx+1)))+(1-m.cos((i+1)*m.pi/(Nx+1))))
     x.append(x_local)
-    
+
 z = []
 for i in range(Nz+1):
     z_local = (Ca/4)*((1-m.cos(i*m.pi/(Nz+1)))+(1-m.cos((i+1)*m.pi/(Nz+1))))
     z.append(z_local)
 
-### Creating some new arrays to test the interpolation with 
+### Creating some new arrays to test the interpolation with
 x_new = np.linspace(x[0], x[-1], 100)
 z_new = np.linspace(z[0], z[-1], 100)
 
@@ -47,13 +48,13 @@ z_new = np.linspace(z[0], z[-1], 100)
 
 
 
-### Doing the actual interpolation! ###
+### Doing the actual interpolation with Scipy! ###
 ################################################
 ### Call the created interolation function
 result = interpolate(x_new, z_new)[0][3]
 ### Plot it...
-plt.subplot(121)
-plt.title("Our cubic interpolation")
+plt.subplot(131)
+plt.title("Current model")
 plt.imshow(result, cmap='gnuplot2')
 
 
@@ -82,22 +83,23 @@ for i in range(len(x_new)):
     for j in range(len(z_new)):
         result_np[i,j] = y_new[j]
 
-### Plot results and save figure      
-plt.subplot(122)
-plt.title('Interpolation using Scipy')
+### Plot results and save figure
+plt.subplot(132)
+plt.title('Scipy')
 plt.imshow(result_np, cmap='gnuplot2')
-plt.savefig("cubic_vs_numpy", dpi=400)
+
 plt.show()
 
 
 
 ### Plotting the difference
-plt.imshow(result_np-result, cmap='seismic')
-plt.title("Difference between interpolation methods", y=1.05)
-plt.colorbar()
+plt.subplot(133)
+plt.imshow((result_np - result)/result_np * 100, cmap='seismic')
+plt.title("Error [%]", y=1.05)
+plt.colorbar(orientation='vertical')
 plt.show()
 
-
+plt.savefig("cubic_vs_numpy", dpi=400)
 
 
 ### Calculating the norm of the difference between these two calculations to check correctness
