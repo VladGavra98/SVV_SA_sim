@@ -73,6 +73,7 @@ def stressCrossSection(x,case):
         print("Case not found")
         return
 
+
     xArray = Df.x.unique()
     absolute_difference_function = lambda list_value: abs(list_value - x)
     nearestX = min(xArray, key=absolute_difference_function)
@@ -92,11 +93,11 @@ def stressCrossSection(x,case):
     avg1 = rows1.groupby(['y','z']).mean().reset_index()
     #avg.to_csv(r'testavg.csv')
     #print("avg",avg)
-    print(avg1['c'].to_numpy())
+    print(avg1['c'])
 
 
-    multiline([avg1['z'].to_numpy()],[avg1['y'].to_numpy()],avg1['c'].to_numpy(),cmap='jet',lw=2)
-    #plt.scatter(rows['z'],rows['y'],c=rows['avgMises'],cmap="jet")
+    multiline([avg1['z']],[avg1['y']],avg1['c'],cmap='jet',lw=2)
+    plt.scatter(rows['z'],rows['y'],c=rows['avgMises'],cmap="jet")
     #minAvgMises = min(rows['avgMises'])
 
 
@@ -148,6 +149,6 @@ def multiline(xs, ys, c, **kwargs):
     return
 
 
-#deflectionAlongX(0,0,"bending")
-#maxStressAlongX("bending")
+deflectionAlongX(0,0,"bending")
+maxStressAlongX("bending")
 stressCrossSection(1074,"bending")
