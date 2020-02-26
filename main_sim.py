@@ -183,18 +183,20 @@ def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     Sy = 1
     Sz = 0
     # open section shear flow
-    q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4 = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
+    q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4,x = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
 
     # dimensions of upper and lower plate
     plateYLength = ha / 2
     plateZLength = ca - ha / 2
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
-
+    ang = np.arctan(plateYLength/plateZLength)
+    r = plateZLength*np.sin(ang)
     #Let's draw some stuff...
+
     #drawGraph(sVec1,q1)
 
     # calculate moment around center of semi circle to find moment arm
-    zeta = integrationArray(q4, sVec4[0],sVec4[-1],n4)*(ha / 2) + integrationArray(q1 ,sVec1[0],sVec1[-1],n1) * (plateZLength / plateLength) * (ha / 2) + integrationArray(q3, sVec3[0],sVec3[-1],n3) * (plateZLength / plateLength) * (ha / 2)
+    zeta = integrationArray(q4[2,:], sVec4[0],sVec4[-1],n4)*(ha / 2) + integrationArray(q1[2,:] ,sVec1[0],sVec1[-1],n1) * r + integrationArray(q3[2,:], sVec3[0],sVec3[-1],n3) * r
 
     # old zeta using scipy.integrate.simps()
     # zeta = sp.integrate.simps(q4, sVec4)*(ha / 2) + sp.integrate.simps(q1, sVec1) * (plateZLength / plateLength) * (ha / 2) + sp.integrate.simps(q3, sVec3) * (plateZLength / plateLength) * (ha / 2)
@@ -390,13 +392,13 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
     q4 = qs4 + x[0]
 
 
-    q1 = np.vstack((yVec1,zVecCentroid1,q1))
-    q2 = np.vstack((yVec2,zVecCentroid2,q2))
-    q3 = np.vstack((yVec3,zVecCentroid3,q3))
-    q4 = np.vstack((yVec4,zVecCentroid4,q4))
+    q1 = np.vstack((yVec1,zVecCentroid1,q1,qs1))
+    q2 = np.vstack((yVec2,zVecCentroid2,q2,qs2))
+    q3 = np.vstack((yVec3,zVecCentroid3,q3,qs3))
+    q4 = np.vstack((yVec4,zVecCentroid4,q4,qs4))
 
 
-    return q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4
+    return q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4,x
 
 #++++++++++++++++++++++++++++ Draw shear flow +++++++++++++++++++++++++++++++++++++++
 def drawGraph(x,y):
@@ -517,7 +519,7 @@ def calcNormStress(y,z,Iyy,Izz,MomentArray):
 
 def calcTau(T,Sy,Sz,ha,ca,tsk,tsp, tst, hst, wst,nst,G,n1,n2,n3,n4):
     """Returns tau at the the location x"""
-    q1,q2,q3,q4,s1,s2,s3,s4  = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
+    q1,q2,q3,q4,s1,s2,s3,s4,x  = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
     q1t,q2t,q3t,q4t,x1,x2,x3 = calcShFlowTorque(ha,ca,tsk,tsp,G,T)
 
     q1[2,:]+= q1t
@@ -589,10 +591,10 @@ def genVM(x,craft):
 class Aircraft:
     def __init__(self,name):
         if name=="A320" or name=="a320":
-            self.n1 = 20
-            self.n2 = 20
-            self.n3 = 20
-            self.n4 = 20
+            self.n1 = 1000
+            self.n2 = 1000
+            self.n3 = 1000
+            self.n4 = 1000
             self.la  = 2.771          #m
             self.ca  = 0.547
             self.ha  = 0.225
@@ -633,11 +635,8 @@ def main():
     # Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
     # #print("Izz and Iyy:\n",Izz, Iyy)
 
-    # q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, discret.n1,discret.n2,discret.n3,discret.n4)
+    # q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, craft.n1,craft.n2,craft.n3,craft.n4)
     # #print("Shear flows are:\n", q)
-
-    # Zsc = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
-    # #print("Shear center z-coordinate is:\n", zShear)
 
     # vm  = VonMisses(np.array([[0],[0],[0]]),q)
     # #print("Von Misses stress are:\n",vm)
@@ -647,8 +646,8 @@ def main():
     # J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
     # #print("J:\n",J)
 
-    # zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
-    # #print("Shear center z-coordinate is:\n", zShear)
+    zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,craft.n1,craft.n2,craft.n3,craft.n4)
+    print("Shear center z-coordinate is:\n", zShear)
 
     #Pick a spanwise x location
     x1 =0.5
@@ -660,7 +659,8 @@ def main():
 
     #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
 
-    #shearFlowGraph2(craft)
+    #SySzHigh(craft)
+    #SySzLow(craft)
 
 
 
