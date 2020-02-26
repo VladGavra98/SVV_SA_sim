@@ -13,10 +13,11 @@ import numpy as np
 import scipy as sp
 from integration import *
 import matplotlib.pyplot as plt
-from shear_flow import *
 from matplotlib import collections  as mc
 from calcNormStress import *
 from EqSolvV2 import *
+from verification import *
+
 
 plt.close('all')
 np.set_printoptions(precision=7)
@@ -189,7 +190,6 @@ def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     plateZLength = ca - ha / 2
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
 
-
     #Let's draw some stuff...
     #drawGraph(sVec1,q1)
 
@@ -233,6 +233,7 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
     a23 = -1
     a31 = 2*A1
     a32 = 2*A2
+
     a33 = 0  #only two closed sections, so this must twist rate
     A = np.matrix([[a11,a12,a13],
                    [a21,a22,a23],
@@ -257,7 +258,6 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
 
 
 def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
-
     print("Calculating shear flows...")
 
     zCentroid   = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
@@ -389,6 +389,7 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
     q3 = qs3 + x[1]
     q4 = qs4 + x[0]
 
+
     q1 = np.vstack((yVec1,zVecCentroid1,q1))
     q2 = np.vstack((yVec2,zVecCentroid2,q2))
     q3 = np.vstack((yVec3,zVecCentroid3,q3))
@@ -472,6 +473,7 @@ def addStringerContribution(integrated,yVec,zVec,ds,n,stringerPos,stArea,directi
 
     return newIntegrated
 
+
 def calcCellArea(ha,ca):
     """Calculate area of left and right cells respectively"""
     # Input: ha, ca
@@ -492,6 +494,7 @@ def calcDist(y1,z1,y2,z2):
     dist = np.sqrt(np.power(y1-y2, 2) + np.power(z1-z2, 2))
 
     return dist
+
 
 
 def calcNormStress(y,z,Iyy,Izz,MomentArray):
@@ -581,6 +584,7 @@ def genVM(x,craft):
 
     return sigma,tau,VM,y,z
 
+
 #++++++++++++++++++++++++++++++ Aircraft Class ++++++++++++++++++++++++++++++++++++++++++++
 class Aircraft:
     def __init__(self,name):
@@ -606,14 +610,11 @@ class Aircraft:
             self.StPos = calcStPose(self.ha, self.ca, self.nst)
             self.Iyy,self.Izz = calcInertia(self.ca,self.ha,self.tsk,self.tsp,self.tst,self.Ast,self.Zcg,self.StPos)
 
-
-
+            
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def main():
     craft = Aircraft("A320")
-
-
 
     # print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
@@ -632,7 +633,6 @@ def main():
     # Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
     # #print("Izz and Iyy:\n",Izz, Iyy)
 
-
     # q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, discret.n1,discret.n2,discret.n3,discret.n4)
     # #print("Shear flows are:\n", q)
 
@@ -642,7 +642,7 @@ def main():
     # vm  = VonMisses(np.array([[0],[0],[0]]),q)
     # #print("Von Misses stress are:\n",vm)
 
-
+    #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
 
     # J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
     # #print("J:\n",J)
@@ -659,6 +659,10 @@ def main():
     print(VM/(10**6))
 
     #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
+
+    #shearFlowGraph2(craft)
+
+
 
 if __name__ == "__main__":
     main()
