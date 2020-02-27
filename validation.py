@@ -104,6 +104,7 @@ def stressCrossSection(x,case):
     fig,ax = plt.subplots()
 
     xArray = Df.x.unique()
+    #print(len(xArray))
     absolute_difference_function = lambda list_value: abs(list_value - x)
     nearestX = min(xArray, key=absolute_difference_function)
     print("Nearest x found is:",nearestX)
@@ -187,7 +188,54 @@ def stressCrossSection(x,case):
 
     return
 
+def twistAlongX(case):
+    if case == "bending":
+        Df = pd.read_csv('validation_processed/bending_processed.csv', header=0,index_col=0)
+    elif case == "jam_bent":
+        Df = pd.read_csv('validation_processed/jam_bent_processed.csv', header=0,index_col=0)
+    elif case == "jam_straight":
+        Df = pd.read_csv('validation_processed/jam_straight_processed.csv', header=0,index_col=0)
+    else:
+        print("Case not found")
+        return
+    yHinge = 0
+    zHinge = 0
+    yLE = 0
+    zLE = 102.5
 
-deflectionAlongX(100,0,"jam_bent")
-maxStressAlongX("jam_bent")
-stressCrossSection(1074,"jam_bent")
+    rowsHinge = Df.loc[(Df['z'] == zHinge) & (Df['y'] == yHinge)]
+    u2HingeAvg = rowsHinge.groupby(['x']).mean().reset_index()
+    #u2HingeAvg = rowsHinge.drop_duplicates(subset=['x'])
+    u2HingeAvg = u2HingeAvg.sort_values(by=['x'])
+
+    rowsLE = Df.loc[(Df['z'] == zLE) & (Df['y'] == yLE)]
+    u2LEAvg = rowsLE.groupby(['x']).mean().reset_index()
+    #u2LEAvg = rowsLE.drop_duplicates(subset=['x'])
+    u2LEAvg = u2LEAvg.sort_values(by=['x'])
+
+
+    difY = u2HingeAvg['u2Loc1'].to_numpy()-u2LEAvg['u2Loc1'].to_numpy()
+    difZ = zLE
+    twist = np.arctan2(difY,difZ)
+
+    fig, ax = plt.subplots()
+    plt.suptitle("Twist angle VS distance in x-direction for case: %s" % (case), fontsize=16)
+    plt.rcParams["font.size"] = "12"
+    plt.rcParams["axes.labelsize"] = "12"
+    ax.set_ylabel('Theta [rad]', fontsize=12.0)
+    ax.set_xlabel('x [mm]', fontsize=12.0)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.tick_params(axis='both', which='minor', labelsize=12)
+
+    plt.plot(u2HingeAvg['x'], twist)
+    plt.grid()
+    ax.autoscale()
+    plt.show()
+
+    return
+
+
+#deflectionAlongX(100,0,"bending")
+#maxStressAlongX("bending")
+#stressCrossSection(1074,"bending")
+twistAlongX("jam_bent")
