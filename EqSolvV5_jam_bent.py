@@ -183,7 +183,6 @@ R = np.dot(np.linalg.inv(BadBoi),B)
 R1 = np.linalg.solve(BadBoi,B)
 
 
-
 def positivo(x,power):
 	if power>0 and x>=0:
 		return x**power

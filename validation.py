@@ -121,7 +121,7 @@ def maxStressAlongX(case):
     plt.show()
     return
 
-def stressCrossSection(x,case):
+def stressCrossSection(x,xVec,stressVec,case):
     if case == "bending":
         Df = pd.read_csv('validation_processed/bending_processed.csv', header=0,index_col=0)
     elif case == "jam_bent":
@@ -217,6 +217,14 @@ def stressCrossSection(x,case):
     ##minAvgMises = min(rows['avgMises'])
     plt.show()
 
+
+
+
+
+
+
+
+
     return
 
 def twistAlongX(case):
@@ -275,4 +283,4 @@ def twistAlongX(case):
 #deflectionAlongX(100,0,"bending")
 #maxStressAlongX("jam_bent")
 #stressCrossSection(1223.5,"jam_bent")
-#twistAlongX("bending")
+twistAlongX("jam_bent")

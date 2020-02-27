@@ -15,10 +15,12 @@ from integration import *
 import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
 from calcNormStress import *
-from EqSolvV3 import *    #check version here: V3 for no aero load, V5 (or higher for the other one)
+#from EqSolvV3 import *    #check version here: V3 for no aero load, V5 (or higher for the other one)
 #from EqSolvV3 import *
 from verification import *
 import matplotlib.cm as cm
+from validation import stressCrossSection
+from EqSolvV3_bending import positivo,Sy,Sz,My,Mz,T,Vy,Vz,Theta
 
 plt.close('all')
 np.set_printoptions(precision=7)
@@ -613,6 +615,9 @@ def genVM(x,craft):
     return sigma,tau,VM,y,z
 
 
+
+
+
 #++++++++++++++++++++++++++++++ Aircraft Class ++++++++++++++++++++++++++++++++++++++++++++
 class Aircraft:
     def __init__(self,name):
@@ -663,7 +668,7 @@ class Aircraft:
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def main():
-    craft = Aircraft("B737")
+    craft = Aircraft("A320")
     # print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
     # stArea = calcStArea(craft.tst,craft.hst,craft.wst)
@@ -705,6 +710,11 @@ def main():
     # n = craft.n1 + craft.n2 + craft.n3 +craft.n4  #keep it odd
     # sigma,tau,VM,y,z = genVM(x1,craft)
     # print(max(VM))
+
+
+
+
+
 
     print("Start the loop...")
     xrange = np.arange(1.28, 1.29, 0.001)
