@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb 25 16:57:53 2020
+
+@author: TiesRozema
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy as scp
+
+a = [0,1,1,1,1,1]
+
+#def func(a,x):
+#	value = 0
+#	for i in range(len(a)):
+#		value += a[i]*x**i
+#	return value
+#
+#def integration(function,vec,n,a,b):
+#	
+#	z0 = 0 											# Lower boundary of integration
+#	zf = 100 											# Upper boundary of integration
+#	n = n 											# Number of steps
+#	deltaz = round((zf-z0)/n,8) 					    # Length of each step
+#	zvector = np.array([0])							# Summation of intervals
+#	h = deltaz/2 									# Half the step
+#	primvector = np.array([0]) 						# Results from Simpson's rule
+#	valuez = 0
+#	
+#	for i in range(n): 								# Calcualtion of summation of intervals
+#		valuez += deltaz
+#		zvector = np.append(zvector,valuez)
+#	
+#			
+#	for j in range(n):								# Simpson's rule
+#		value = h/3*(function(vec,zvector[j]) + 4*function(vec,zvector[j]+h) + function(vec,zvector[j+1]))
+#		primvector = np.append(primvector,value)
+#	
+#	A = np.empty([n+1,n+1])							# Interpolation
+#	for i in range(n+1):
+#		for j in range(n+1):
+#			A[i,j] = zvector[i]**j
+#		
+#	weights = np.dot(np.linalg.inv(A),np.transpose(primvector)) 	# Weights of interpolation, value in front of the xs
+#	total = np.sum(primvector)										# Total value of integration
+#	
+#	return weights,total
+#
+#print(integration(func,a,500,0,10))
+
+def f(x):
+    return x
+
+a = scp.integrate.quad(f, 0, 100)
+print(a)
+
+#error = np.abs(integration.total - a)
+#y = integration(f,a,500,0,10)
+#error.tab = [np.log10(np.abs(y - a))]
+#n.tab = [500]
+#
+#plt.plot(error.tab, n.tab)
+#plt.show()
