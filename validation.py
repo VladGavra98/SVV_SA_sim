@@ -4,7 +4,8 @@ from matplotlib.collections import LineCollection
 import numpy as np
 from scipy import spatial
 
-def deflectionAlongX(y,z,case):
+
+def deflectionAlongX(y,z,xVec,yDef,zDef,case):
     if case=="bending":
         Df = pd.read_csv('validation_processed/bending_processed.csv', header=0,index_col=0)
     elif case=="jam_bent":
@@ -31,7 +32,7 @@ def deflectionAlongX(y,z,case):
     xSort = zFiltered.sort_values(by='x')
 
     fig, ax = plt.subplots()
-    plt.suptitle("Aileron deflection VS distance in x-direction for case: %s"%(case),fontsize=16)
+    plt.suptitle("Aileron deflection in y-direction VS distance in x-direction for case: %s"%(case),fontsize=16)
     plt.rcParams["font.size"] = "12"
     plt.rcParams["axes.labelsize"] = "12"
     ax.set_ylabel('y [mm]', fontsize=12.0)
@@ -39,10 +40,27 @@ def deflectionAlongX(y,z,case):
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.tick_params(axis='both', which='minor', labelsize=12)
 
-    plt.plot(xSort['x'], xSort['u1Loc1'], label="deflection in x")
-    plt.plot(xSort['x'], xSort['u2Loc1'],label="deflection in y")
-    plt.plot(xSort['x'], xSort['u3Loc1'], label="deflection in z")
-    plt.xlabel("x [mm]")
+    #plt.plot(xSort['x'], xSort['u1Loc1'], label="deflection in x")
+    plt.plot(xSort['x']/1000, xSort['u2Loc1'],label="deflection in y (validation)")
+    plt.plot(xVec,yDef*1000,label="deflection in y (numerical)")
+    plt.xlabel("x [m]")
+    plt.ylabel("Deflection [mm]")
+    plt.grid()
+    plt.legend()
+    ax.autoscale()
+    plt.show()
+
+    fig, ax = plt.subplots()
+    plt.suptitle("Aileron deflection in z-direction VS distance in x-direction for case: %s" % (case), fontsize=16)
+    plt.rcParams["font.size"] = "12"
+    plt.rcParams["axes.labelsize"] = "12"
+    ax.set_ylabel('y [mm]', fontsize=12.0)
+    ax.set_xlabel('z [mm]', fontsize=12.0)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.tick_params(axis='both', which='minor', labelsize=12)
+    plt.plot(xVec,zDef*1000,label="deflection in z (numerical)")
+    plt.plot(xSort['x']/1000, xSort['u3Loc1'], label="deflection in z (validation)")
+    plt.xlabel("x [m]")
     plt.ylabel("Deflection [mm]")
     plt.grid()
     plt.legend()
@@ -87,6 +105,19 @@ def maxStressAlongX(case):
     plt.grid()
     plt.legend()
     ax.autoscale()
+
+    print(maxStress)
+    idx = np.argmax(maxStress)
+    idx2 = np.argmax(maxStress[::-1])
+    xMaxStress = xArray[idx]
+    xMaxStress2 = xArray[-1-idx2]
+    print("Maximum stress is at x-location: ",xMaxStress)
+    print("Maximum stress is ",maxStress[idx])
+    if idx!= idx2:
+        print("Second maximum stress is at x-location: ", xMaxStress2)
+        print("Second maximum stress is ", maxStress[-1-idx2])
+        print("Average x-location: ",(xMaxStress+xMaxStress2)/2)
+        print("Average maximum stress: ",(maxStress[idx]+maxStress[-1-idx2])/2)
     plt.show()
     return
 
@@ -204,18 +235,25 @@ def twistAlongX(case):
     zLE = 102.5
 
     rowsHinge = Df.loc[(Df['z'] == zHinge) & (Df['y'] == yHinge)]
-    u2HingeAvg = rowsHinge.groupby(['x']).mean().reset_index()
-    #u2HingeAvg = rowsHinge.drop_duplicates(subset=['x'])
-    u2HingeAvg = u2HingeAvg.sort_values(by=['x'])
+    HingeAvg = rowsHinge.groupby(['x']).mean().reset_index()
+    HingeAvg = rowsHinge.drop_duplicates(subset=['x'])
+    HingeAvg = HingeAvg.sort_values(by=['x'])
+    #HingeAvg.to_csv('hingeavg.csv')
 
     rowsLE = Df.loc[(Df['z'] == zLE) & (Df['y'] == yLE)]
-    u2LEAvg = rowsLE.groupby(['x']).mean().reset_index()
-    #u2LEAvg = rowsLE.drop_duplicates(subset=['x'])
-    u2LEAvg = u2LEAvg.sort_values(by=['x'])
+    LEAvg = rowsLE.groupby(['x']).mean().reset_index()
+    LEAvg = rowsLE.drop_duplicates(subset=['x'])
+    LEAvg = LEAvg.sort_values(by=['x'])
+    # drop two extra points at leading edge if hinge is trailing edge
+   # LEAvg = LEAvg.drop(LEAvg.index[49])
+    #EAvg = LEAvg.drop(LEAvg.index[7])
+    #LEAvg.to_csv('leavg.csv')
 
 
-    difY = u2HingeAvg['u2Loc1'].to_numpy()-u2LEAvg['u2Loc1'].to_numpy()
-    difZ = zLE
+    difY = HingeAvg['u2Loc1'].to_numpy()-LEAvg['u2Loc1'].to_numpy()
+    difZ = zLE +(LEAvg['u1Loc1'].to_numpy()-HingeAvg['u1Loc1'])
+    # if hinge is trailing edge
+    #difZ = zLE -zHinge + (LEAvg['u1Loc1'].to_numpy() - HingeAvg['u1Loc1'])
     twist = np.arctan2(difY,difZ)
 
     fig, ax = plt.subplots()
@@ -227,15 +265,14 @@ def twistAlongX(case):
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.tick_params(axis='both', which='minor', labelsize=12)
 
-    plt.plot(u2HingeAvg['x'], twist)
+    plt.plot(HingeAvg['x'], twist)
     plt.grid()
     ax.autoscale()
     plt.show()
 
     return
 
-
 #deflectionAlongX(100,0,"bending")
-#maxStressAlongX("bending")
-#stressCrossSection(1074,"bending")
-twistAlongX("jam_bent")
+#maxStressAlongX("jam_bent")
+#stressCrossSection(1223.5,"jam_bent")
+#twistAlongX("bending")

@@ -611,51 +611,71 @@ class Aircraft:
             self.Zcg   = calcCentroid(self.ha,self.ca,self.tsk,self.tsp,self.tst,self.hst,self.wst,self.nst)
             self.StPos = calcStPose(self.ha, self.ca, self.nst)
             self.Iyy,self.Izz = calcInertia(self.ca,self.ha,self.tsk,self.tsp,self.tst,self.Ast,self.Zcg,self.StPos)
+        if name=="B737" or name=="b737":
+            self.n1 = 1000
+            self.n2 = 1000
+            self.n3 = 1000
+            self.n4 = 1000
+            self.la  = 2.661          #m
+            self.ca  = 0.605
+            self.ha  = 0.205
+            self.tsk = 0.0011
+            self.tst = 0.0012
+            self.wst = 0.019
+            self.hst = 0.016
+            self.nst = 15
+            self.tsp = 0.0028
+            self.Ast = calcStArea(self.tst,self.hst,self.wst)
+            self.theta = np.radians(28)  #rad
+            self.E     = 73.1*10**9     #aluminium 2024-T3
+            self.G     = 28*10**9       #aluminium 2024-T3
+            self.Zcg   = calcCentroid(self.ha,self.ca,self.tsk,self.tsp,self.tst,self.hst,self.wst,self.nst)
+            self.StPos = calcStPose(self.ha, self.ca, self.nst)
+            self.Iyy,self.Izz = calcInertia(self.ca,self.ha,self.tsk,self.tsp,self.tst,self.Ast,self.Zcg,self.StPos)
 
             
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def main():
-    craft = Aircraft("A320")
-
+    craft = Aircraft("B737")
     # print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
     # stArea = calcStArea(craft.tst,craft.hst,craft.wst)
-    # #print("Stringer Area is:\n",stArea)
+    # print("Stringer Area is:\n",stArea)
 
     # A1,A2 = calcCellArea(craft.ha,craft.ca)
-    # #print("Cell areas are:\n",A1,A2)
+    # print("Cell areas are:\n",A1,A2)
 
-    # pos = calcStPose(craft.ha,craft.ca,craft.nst)
-    # #print("Stringers (y,z) are:\n",pos)
+    pos = calcStPose(craft.ha,craft.ca,craft.nst)
+    # print("Stringers (y,z) are:\n",pos)
 
     Zcg = calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst)
-    # #print("Centroid z-coordinate is:\n", Zcg)
+    # print("Centroid z-coordinate is:\n", Zcg)
 
-    # Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
-    # #print("Izz and Iyy:\n",Izz, Iyy)
+    Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
+    print("Izz and Iyy:\n",Izz, Iyy)
 
     # q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, craft.n1,craft.n2,craft.n3,craft.n4)
-    # #print("Shear flows are:\n", q)
+    # print("Shear flows are:\n", q)
 
     # vm  = VonMisses(np.array([[0],[0],[0]]),q)
-    # #print("Von Misses stress are:\n",vm)
+    # print("Von Misses stress are:\n",vm)
 
     #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
 
-    # J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
-    # #print("J:\n",J)
+    J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
+    print("J:\n",J)#
 
     zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,craft.n1,craft.n2,craft.n3,craft.n4)
     print("Shear center z-coordinate is:\n", zShear)
 
     #Pick a spanwise x location
-    x1 =0.5
-    n = craft.n1 + craft.n2 + craft.n3 +craft.n4  #keep it odd
-    sigma,tau,VM,y,z = genVM(x1,craft)
+    #x1 =0.5
+    #n = craft.n1 + craft.n2 + craft.n3 +craft.n4  #keep it odd
+    #sigma,tau,VM,y,z = genVM(x1,craft)
 
-    plt.scatter(-Zcg-z,y,c=VM, vmin=min(VM), vmax=max(VM), s=20, cmap="jet")
-    print(VM/(10**6))
+    #plt.scatter(-Zcg-z,y,c=VM, vmin=min(VM), vmax=max(VM), s=20, cmap="jet")
+    #print(VM/(10**6))
 
     #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
 
