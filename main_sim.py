@@ -15,9 +15,10 @@ from integration import *
 import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
 from calcNormStress import *
-from EqSolvV2 import *
+from EqSolvV3 import *    #check version here: V3 for no aero load, V5 (or higher for the other one)
+#from EqSolvV3 import *
 from verification import *
-
+import matplotlib.cm as cm
 
 plt.close('all')
 np.set_printoptions(precision=7)
@@ -47,8 +48,27 @@ def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg,Zsc): #Verified by Vlad & 
     plt.grid()
     plt.axis('equal')
     plt.scatter(stringer_posz,stringer_posy,label='Stiffener')
+    plt.xlabel(r"-z[m]")
+    plt.ylabel(r"y[m]")
     plt.legend()
     ax.autoscale()
+
+def DrawStress(z,y,VM,name):
+    print("Draw stresses...")
+
+    fig = plt.figure(str(name))
+
+    m = cm.ScalarMappable(cmap=plt.get_cmap("jet"))
+    m.set_array(np.array([np.min(VM), np.max(VM)]))
+
+    plt.colorbar(m)
+    plt.scatter(z,y,c=VM, vmin=np.min(VM), vmax=np.max(VM), s=5, cmap="jet")
+
+    plt.xlabel(r"-z[m]")
+    plt.ylabel(r"y[m]")
+
+    plt.title(str(name))
+    plt.savefig(str(name))
 
 #++++++++++++++++++++ Stringer Position (from TE to LE and back in c.c. order)++++++++++
 def calcStPose(ha,ca,nst):   #Verified by Vlad!
@@ -183,18 +203,20 @@ def calcShCenter(ha,ca,tsk,tsp, tst, hst, wst,nst,n1,n2,n3,n4):
     Sy = 1
     Sz = 0
     # open section shear flow
-    q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4 = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
+    q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4,x = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
 
     # dimensions of upper and lower plate
     plateYLength = ha / 2
     plateZLength = ca - ha / 2
     plateLength = np.sqrt(np.power(plateYLength, 2) + np.power(plateZLength, 2))
-
+    ang = np.arctan(plateYLength/plateZLength)
+    r = plateZLength*np.sin(ang)
     #Let's draw some stuff...
+
     #drawGraph(sVec1,q1)
 
     # calculate moment around center of semi circle to find moment arm
-    zeta = integrationArray(q4, sVec4[0],sVec4[-1],n4)*(ha / 2) + integrationArray(q1 ,sVec1[0],sVec1[-1],n1) * (plateZLength / plateLength) * (ha / 2) + integrationArray(q3, sVec3[0],sVec3[-1],n3) * (plateZLength / plateLength) * (ha / 2)
+    zeta = integrationArray(q4[2,:], sVec4[0],sVec4[-1],n4)*(ha / 2) + integrationArray(q1[2,:] ,sVec1[0],sVec1[-1],n1) * r + integrationArray(q3[2,:], sVec3[0],sVec3[-1],n3) * r
 
     # old zeta using scipy.integrate.simps()
     # zeta = sp.integrate.simps(q4, sVec4)*(ha / 2) + sp.integrate.simps(q1, sVec1) * (plateZLength / plateLength) * (ha / 2) + sp.integrate.simps(q3, sVec3) * (plateZLength / plateLength) * (ha / 2)
@@ -258,7 +280,7 @@ def calcShFlowTorque(ha,ca,tsk,tsp,G,T):
 
 
 def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
-    print("Calculating shear flows...")
+
 
     zCentroid   = calcCentroid(ha,ca,tsk,tsp,tst,hst,wst,nst)
     stArea      = calcStArea(tst,hst,wst)
@@ -390,13 +412,13 @@ def calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4):
     q4 = qs4 + x[0]
 
 
-    q1 = np.vstack((yVec1,zVecCentroid1,q1))
-    q2 = np.vstack((yVec2,zVecCentroid2,q2))
-    q3 = np.vstack((yVec3,zVecCentroid3,q3))
-    q4 = np.vstack((yVec4,zVecCentroid4,q4))
+    q1 = np.vstack((yVec1,zVecCentroid1,q1,qs1))
+    q2 = np.vstack((yVec2,zVecCentroid2,q2,qs2))
+    q3 = np.vstack((yVec3,zVecCentroid3,q3,qs3))
+    q4 = np.vstack((yVec4,zVecCentroid4,q4,qs4))
 
 
-    return q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4
+    return q1,q2,q3,q4,sVec1,sVec2,sVec3,sVec4,x
 
 #++++++++++++++++++++++++++++ Draw shear flow +++++++++++++++++++++++++++++++++++++++
 def drawGraph(x,y):
@@ -511,13 +533,13 @@ def calcNormStress(y,z,Iyy,Izz,MomentArray):
 
     # print(MomentArray)
     sigma_y =  float(MomentArray[1,:])*z/Iyy     # compute stress
-    sigma_z = -float(MomentArray[2,:])*y/Izz
+    sigma_z = float(MomentArray[2,:])*y/Izz
     sigma   = sigma_y + sigma_z
     return sigma
 
 def calcTau(T,Sy,Sz,ha,ca,tsk,tsp, tst, hst, wst,nst,G,n1,n2,n3,n4):
     """Returns tau at the the location x"""
-    q1,q2,q3,q4,s1,s2,s3,s4  = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
+    q1,q2,q3,q4,s1,s2,s3,s4,x  = calcShFlow(ha,ca,tsk,tsp, tst, hst, wst,nst,Sz,Sy,n1,n2,n3,n4)
     q1t,q2t,q3t,q4t,x1,x2,x3 = calcShFlowTorque(ha,ca,tsk,tsp,G,T)
 
     q1[2,:]+= q1t
@@ -526,14 +548,13 @@ def calcTau(T,Sy,Sz,ha,ca,tsk,tsp, tst, hst, wst,nst,G,n1,n2,n3,n4):
     q4[2,:]+= q4t
 
     tau1 = q1
-    tau1[2,:] = q1[2,:]/tsk
-
+    tau1[2,:] = -q1[2,:]/tsk
     tau2 =q2
-    tau2[2,:] = q2[2,:]/tsp    #spar top to bottom
+    tau2[2,:] = -q2[2,:]/tsp    #spar top to bottom
     tau3=q3
-    tau3[2,:] = q3[2,:]/tsk
+    tau3[2,:] = -q3[2,:]/tsk
     tau4=q4
-    tau4[2,:] = q4[2,:]/tsk
+    tau4[2,:] = -q4[2,:]/tsk
 
     tau = np.hstack((tau1,tau4,tau3,tau2))   #cc around the section and than the spa
     # print(np.shape(tau))
@@ -555,6 +576,13 @@ def VonMisses(sigma,tau):
 
 
 #++++++++++++++++++++++++++ Shear & Moment ++++++++++++++++++++++++++++++++++++++++++++++++
+def genShears(x):
+    """Imports the Sz and Sy function from the equation solver and calculatates all the moment
+    as a function of x"""
+    Syval =  Sy(x)
+    Szval =  Sz(x)
+    return np.array([Syval,Szval])
+
 def genMoments(x):
     """Imports the T,Mx,Mz function from the equation solver and calculatates all the moment
     as a function of x"""
@@ -568,10 +596,10 @@ def genVM(x,craft):
     """Integrates toghether the moment evaluation, sigma is taken.
     """
     MomentArray = genMoments(x) #[[T],[My],[Mz]]
-
+    ShearArray  = genShears(x)   #[[Sy][Sz]]
     #sigma       = calcNormStress(Ha, ca, Zcg, Iyy, Izz, MomentArray, npoints)
 
-    tau   = calcTau(float(MomentArray[0]),0,0,craft.ha,craft.ca,craft.tsk,craft.tsp, craft.tst, craft.hst, craft.wst,craft.nst,craft.G,craft.n1,craft.n2,craft.n3,craft.n4)#Change this!!
+    tau   = calcTau(float(MomentArray[0]),float(ShearArray[0]),float(ShearArray[1]),craft.ha,craft.ca,craft.tsk,craft.tsp, craft.tst, craft.hst, craft.wst,craft.nst,craft.G,craft.n1,craft.n2,craft.n3,craft.n4)#Change this!!
 
     y=    tau[0,:]
     z=    tau[1,:]
@@ -579,7 +607,7 @@ def genVM(x,craft):
 
 
     sigma = calcNormStress(y,z,craft.Izz,craft.Iyy,MomentArray)
-    print("Sigma:\n",sigma)
+    #print("Sigma:\n",sigma)
     VM    = VonMisses(sigma,tau)
 
     return sigma,tau,VM,y,z
@@ -589,10 +617,10 @@ def genVM(x,craft):
 class Aircraft:
     def __init__(self,name):
         if name=="A320" or name=="a320":
-            self.n1 = 20
-            self.n2 = 20
-            self.n3 = 20
-            self.n4 = 20
+            self.n1 = 1000
+            self.n2 = 1000
+            self.n3 = 1000
+            self.n4 = 1000
             self.la  = 2.771          #m
             self.ca  = 0.547
             self.ha  = 0.225
@@ -610,7 +638,7 @@ class Aircraft:
             self.StPos = calcStPose(self.ha, self.ca, self.nst)
             self.Iyy,self.Izz = calcInertia(self.ca,self.ha,self.tsk,self.tsp,self.tst,self.Ast,self.Zcg,self.StPos)
 
-            
+
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def main():
@@ -624,46 +652,74 @@ def main():
     # A1,A2 = calcCellArea(craft.ha,craft.ca)
     # #print("Cell areas are:\n",A1,A2)
 
-    # pos = calcStPose(craft.ha,craft.ca,craft.nst)
+    pos = calcStPose(craft.ha,craft.ca,craft.nst)
     # #print("Stringers (y,z) are:\n",pos)
 
     Zcg = calcCentroid(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst)
     # #print("Centroid z-coordinate is:\n", Zcg)
 
+    #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
     # Izz,Iyy = calcInertia(craft.ca,craft.ha,craft.tsk,craft.tsp,craft.tst,craft.Ast,Zcg,pos)
     # #print("Izz and Iyy:\n",Izz, Iyy)
 
-    # q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, discret.n1,discret.n2,discret.n3,discret.n4)
+    # q = calcShFlow(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,1,0, craft.n1,craft.n2,craft.n3,craft.n4)
     # #print("Shear flows are:\n", q)
-
-    # Zsc = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
-    # #print("Shear center z-coordinate is:\n", zShear)
 
     # vm  = VonMisses(np.array([[0],[0],[0]]),q)
     # #print("Von Misses stress are:\n",vm)
 
-    #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
-
     # J = calcTorsionStiffness(craft.ha, craft.ca, craft.tsk, craft.tsp, craft.G)
     # #print("J:\n",J)
 
-    # zShear = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,discret.n1,discret.n2,discret.n3,discret.n4)
-    # #print("Shear center z-coordinate is:\n", zShear)
+    Zsc = calcShCenter(craft.ha,craft.ca,craft.tsk,craft.tsp,craft.tst,craft.hst,craft.wst,craft.nst,craft.n1,craft.n2,craft.n3,craft.n4)
+    print("Shear center z-coordinate is:\n", Zsc)
+
 
     #Pick a spanwise x location
-    x1 =0.5
-    n = craft.n1 + craft.n2 + craft.n3 +craft.n4  #keep it odd
-    sigma,tau,VM,y,z = genVM(x1,craft)
+    # x1 =1.262
+    # n = craft.n1 + craft.n2 + craft.n3 +craft.n4  #keep it odd
+    # sigma,tau,VM,y,z = genVM(x1,craft)
+    # print(max(VM))
 
-    plt.scatter(-Zcg-z,y,c=VM, vmin=min(VM), vmax=max(VM), s=20, cmap="jet")
-    print(VM/(10**6))
+    print("Start the loop...")
+    xrange = np.arange(1.28, 1.29, 0.001)
+    maxVM  = 0
+    maxZ   = 0
+    maxY   = 0
+    maxTau = 0
+    maxSigma = 0
+    glmax = 0
+    for x in xrange:
+        #Stress calculations
+        sigma,tau,VM,y,z = genVM(x,craft)
 
-    #drawSection(craft.ha,craft.ca,-pos[1,:],-pos[0,:],Zcg,Zsc)
+        if (np.abs(VM).any() != VM.any()):
+            print("Error in von Mises calculation, check again!")
+            break
+        localmax = max(VM)
+        if localmax > glmax:
+            maxVM = VM
+            glmax = localmax
+            maxX  = x
+            maxZ  = z
+            maxY  = y
+            maxTau = tau
+            maxSigma = sigma
 
-    #shearFlowGraph2(craft)
+    #Printing :
+    print("Maximum VM, location: ", glmax/(10**6),maxX)
+    print("Maximum Tau, location: ", max(maxTau)/(10**6),maxX)
+    print("Maximum Sigma, location: ",max(maxSigma)/(10**6),maxX)
+
+    #Plotting :
+    DrawStress(-Zcg-maxZ,maxY, maxVM/(10**6),name ="Von Mises")
+    DrawStress(-Zcg-maxZ,maxY, maxTau/(10**6,),name="Shear Stress")
+    DrawStress(-Zcg-maxZ,maxY, maxSigma/(10**6),name="Normal Stress")
+
 
 
 
 if __name__ == "__main__":
     main()
+    print("Done!\n")
     plt.show()
