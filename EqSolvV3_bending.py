@@ -2,55 +2,7 @@ import numpy as np
 import math as m
 import matplotlib.pyplot as plt
 import scipy.interpolate as scp
-from validation import deflectionAlongX
-from main_sim import *
-
-class Aircraft:
-    def __init__(self,name):
-        if name=="A320" or name=="a320":
-            self.n1 = 1000
-            self.n2 = 1000
-            self.n3 = 1000
-            self.n4 = 1000
-            self.la  = 2.771          #m
-            self.ca  = 0.547
-            self.ha  = 0.225
-            self.tsk = 0.0011
-            self.tst = 0.0012
-            self.wst = 0.020
-            self.hst = 0.015
-            self.nst = 17
-            self.tsp = 0.0029
-            self.Ast = calcStArea(self.tst,self.hst,self.wst)
-            self.theta = np.radians(26)  #rad
-            self.E     = 73.1*10**9     #aluminium 2024-T3
-            self.G     = 28*10**9       #aluminium 2024-T3
-            self.Zcg   = calcCentroid(self.ha,self.ca,self.tsk,self.tsp,self.tst,self.hst,self.wst,self.nst)
-            self.StPos = calcStPose(self.ha, self.ca, self.nst)
-            self.Iyy,self.Izz = calcInertia(self.ca,self.ha,self.tsk,self.tsp,self.tst,self.Ast,self.Zcg,self.StPos)
-        if name=="B737" or name=="b737":
-            self.n1 = 1000
-            self.n2 = 1000
-            self.n3 = 1000
-            self.n4 = 1000
-            self.la  = 2.661          #m
-            self.ca  = 0.605
-            self.ha  = 0.205
-            self.tsk = 0.0011
-            self.tst = 0.0012
-            self.wst = 0.019
-            self.hst = 0.016
-            self.nst = 15
-            self.tsp = 0.0028
-            self.Ast = calcStArea(self.tst,self.hst,self.wst)
-            self.theta = np.radians(28)  #rad
-            self.E     = 73.1*10**9     #aluminium 2024-T3
-            self.G     = 28*10**9       #aluminium 2024-T3
-            self.Zcg   = calcCentroid(self.ha,self.ca,self.tsk,self.tsp,self.tst,self.hst,self.wst,self.nst)
-            self.StPos = calcStPose(self.ha, self.ca, self.nst)
-            self.Iyy,self.Izz = calcInertia(self.ca,self.ha,self.tsk,self.tsp,self.tst,self.Ast,self.Zcg,self.StPos)
-
-
+from validation import deflectionAlongX,stressCrossSection
 
 
 
@@ -233,12 +185,9 @@ for i in range(len(xcheck)):
 	DeflectionY = np.append(DeflectionY,Vy(xcheck[i])+Theta(xcheck[i])*(ha/2+zsc))
 	DeflectionZ = np.append(DeflectionZ,Vz(xcheck[i]))
 
-craft = Aircraft("B737")
-sigma,tau,VM,y,z = genVM(xcheck,craft)
 
 
 ## Check list
 # Torque is good, the rest not so much, why???
 # Check the Twist equation, take constant out and multiply by 2 and you get a close result\
-deflectionAlongX(0,0,xcheck,DeflectionY,DeflectionZ,"bending")
-stressCrossSection(1000,xcheck,VM,"bending")
+#deflectionAlongX(0,0,xcheck,DeflectionY,DeflectionZ,"bending")

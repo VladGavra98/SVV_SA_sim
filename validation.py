@@ -68,7 +68,7 @@ def deflectionAlongX(y,z,xVec,yDef,zDef,case):
     plt.show()
     return
 
-def maxStressAlongX(case):
+def maxStressAlongX(xVec,stressVec,case):
     if case == "bending":
         Df = pd.read_csv('validation_processed/bending_processed.csv', header=0,index_col=0)
     elif case == "jam_bent":
@@ -99,14 +99,15 @@ def maxStressAlongX(case):
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.tick_params(axis='both', which='minor', labelsize=12)
 
-    plt.plot(xArray,maxStress,label="maximum stress")
-    plt.xlabel("x [mm]")
-    plt.ylabel("Von Mises stress [Pa]")
+    plt.plot(xArray/1000,maxStress,label="maximum stress (validation")
+    plt.plot(xVec, stressVec, label="maximum stress (numerical")
+    plt.xlabel("x [m]")
+    plt.ylabel("Von Mises stress [GPa]")
     plt.grid()
     plt.legend()
     ax.autoscale()
 
-    print(maxStress)
+
     idx = np.argmax(maxStress)
     idx2 = np.argmax(maxStress[::-1])
     xMaxStress = xArray[idx]
@@ -121,7 +122,7 @@ def maxStressAlongX(case):
     plt.show()
     return
 
-def stressCrossSection(x,xVec,stressVec,case):
+def stressCrossSection(x,case):
     if case == "bending":
         Df = pd.read_csv('validation_processed/bending_processed.csv', header=0,index_col=0)
     elif case == "jam_bent":
@@ -149,21 +150,21 @@ def stressCrossSection(x,xVec,stressVec,case):
     norm = plt.Normalize(rows['avgMises'].min(), rows['avgMises'].max())
 
     #plotting paramters
-    plt.suptitle("Von Mises stress [Pa] at cross section x=%d [mm] for case: %s" % (nearestX,case), fontsize=16)
+    plt.suptitle("Von Mises stress [GPa] at cross section x=%.3f [m] for case: %s" % (nearestX/1000,case), fontsize=16)
     plt.rcParams["font.size"] = "12"
     plt.rcParams["axes.labelsize"] = "12"
-    ax.set_ylabel('y [mm]', fontsize=12.0)
-    ax.set_xlabel('z [mm]', fontsize=12.0)
+    ax.set_ylabel('y [m]', fontsize=12.0)
+    ax.set_xlabel('z [m]', fontsize=12.0)
     ax.tick_params(axis='both', which='major', labelsize=12)
     ax.tick_params(axis='both', which='minor', labelsize=12)
 
     ### section 1
-    rows1 = rows.loc[(rows['y']>=0) & (rows['z']<0)]
+    rows1 = rows.loc[(rows['y']>=-0.01) & (rows['z']<0)]
     rows1 = rows1.append(rows.loc[(rows['y']==102.5) & (rows['z']==0)])
     rows1 = rows1.sort_values(by='y')
     avg1 = rows1.groupby(['y','z']).mean().reset_index()
     points1 = np.array([avg1['z'].to_numpy(),avg1['y'].to_numpy()]).T.reshape(-1, 1, 2)
-    segments1 = np.concatenate([points1[:-1], points1[1:]], axis=1)
+    segments1 = np.concatenate([points1[:-1]/1000, points1[1:]/1000], axis=1)
     lc1 = LineCollection(segments1, cmap='jet', norm=norm)
     lc1.set_array(avg1['avgMises'])
     lc1.set_linewidth(3)
@@ -174,7 +175,7 @@ def stressCrossSection(x,xVec,stressVec,case):
     rows2 = rows2.sort_values(by='y',ascending=False)
     avg2 = rows2.groupby(['y', 'z']).mean().reset_index()
     points2 = np.array([avg2['z'].to_numpy(), avg2['y'].to_numpy()]).T.reshape(-1, 1, 2)
-    segments2 = np.concatenate([points2[:-1], points2[1:]], axis=1)
+    segments2 = np.concatenate([points2[:-1]/1000, points2[1:]/1000], axis=1)
     lc2 = LineCollection(segments2, cmap='jet', norm=norm)
     lc2.set_array(avg2['avgMises'])
     lc2.set_linewidth(3)
@@ -186,7 +187,7 @@ def stressCrossSection(x,xVec,stressVec,case):
     rows3 = rows3.sort_values(by='z')
     avg3 = rows3.groupby(['y', 'z']).mean().reset_index()
     points3 = np.array([avg3['z'].to_numpy(), avg3['y'].to_numpy()]).T.reshape(-1, 1, 2)
-    segments3 = np.concatenate([points3[:-1], points3[1:]], axis=1)
+    segments3 = np.concatenate([points3[:-1]/1000, points3[1:]/1000], axis=1)
     lc3 = LineCollection(segments3, cmap='jet', norm=norm)
     lc3.set_array(avg3['avgMises'])
     lc3.set_linewidth(3)
@@ -199,13 +200,13 @@ def stressCrossSection(x,xVec,stressVec,case):
     rows4 = rows4.sort_values(by='y',ascending=False)
     avg4 = rows4.groupby(['y', 'z']).mean().reset_index()
     points4 = np.array([avg4['z'].to_numpy(), avg4['y'].to_numpy()]).T.reshape(-1, 1, 2)
-    segments4 = np.concatenate([points4[:-1], points4[1:]], axis=1)
+    segments4 = np.concatenate([points4[:-1]/1000, points4[1:]/1000], axis=1)
     lc4 = LineCollection(segments4, cmap='jet', norm=norm)
     lc4.set_array(avg4['avgMises'])
     lc4.set_linewidth(3)
     line = ax.add_collection(lc4)
 
-    plt.grid()
+    ax.set_xlim(0.131, -0.532)
     plt.axis('equal')
     ax.autoscale()
     plt.colorbar(line)
@@ -216,13 +217,6 @@ def stressCrossSection(x,xVec,stressVec,case):
     #plt.colorbar()
     ##minAvgMises = min(rows['avgMises'])
     plt.show()
-
-
-
-
-
-
-
 
 
     return
@@ -282,5 +276,5 @@ def twistAlongX(case):
 
 #deflectionAlongX(100,0,"bending")
 #maxStressAlongX("jam_bent")
-#stressCrossSection(1223.5,"jam_bent")
-twistAlongX("jam_bent")
+#stressCrossSection(1036,"jam_straight")
+#twistAlongX("jam_bent")

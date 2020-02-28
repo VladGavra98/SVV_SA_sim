@@ -281,10 +281,8 @@ for i in range(len(xcheck)):
     DeflectionY = np.append(DeflectionY, Vy(xcheck[i]) + Theta(xcheck[i]) * (ha / 2 + zsc))
     DeflectionZ = np.append(DeflectionZ, Vz(xcheck[i]))
 
-## Check list
-# Torque is good, the rest not so much, why???
-# Check the Twist equation, take constant out and multiply by 2 and you get a close result\
-deflectionAlongX(0, 0, xcheck, DeflectionY, DeflectionZ, "jam_straight")
+
+#deflectionAlongX(0, 0, xcheck, DeflectionY, DeflectionZ, "jam_straight")
 
 ## Check list
 # Torque is good, the rest not so much, why???

@@ -19,8 +19,9 @@ from calcNormStress import *
 #from EqSolvV3 import *
 from verification import *
 import matplotlib.cm as cm
-from validation import stressCrossSection
-from EqSolvV3_bending import positivo,Sy,Sz,My,Mz,T,Vy,Vz,Theta
+from validation import stressCrossSection,maxStressAlongX
+from EqSolvV5 import Sy,Sz,Vy,Vz,My,Mz,T
+
 
 plt.close('all')
 np.set_printoptions(precision=7)
@@ -36,7 +37,7 @@ g = 9.81 #m/s2
 def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg,Zsc): #Verified by Vlad & Alberto!
     """Plots the cross-section."""
     fig,ax = plt.subplots()
-    plt.title("Cross section")
+    plt.suptitle("Cross section",fontsize=16)
 
     an = np.linspace(np.pi/2, np.pi*3/2, 100)
     plt.plot(ha/2+ha/2 * np.cos(an), ha/2 * np.sin(an))
@@ -50,27 +51,31 @@ def drawSection(ha,ca,stringer_posz,stringer_posy,Zcg,Zsc): #Verified by Vlad & 
     plt.grid()
     plt.axis('equal')
     plt.scatter(stringer_posz,stringer_posy,label='Stiffener')
-    plt.xlabel(r"-z[m]")
-    plt.ylabel(r"y[m]")
+    plt.xlabel(r"-z [m]")
+    plt.ylabel(r"y [m]")
     plt.legend()
     ax.autoscale()
 
 def DrawStress(z,y,VM,name):
     print("Draw stresses...")
-
-    fig = plt.figure(str(name))
+    fig,ax=plt.subplots()
+    plt.rcParams["font.size"] = "12"
+    plt.rcParams["axes.labelsize"] = "12"
+    ax.set_ylabel('y [m]', fontsize=12.0)
+    ax.set_xlabel('z [m]', fontsize=12.0)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.tick_params(axis='both', which='minor', labelsize=12)
 
     m = cm.ScalarMappable(cmap=plt.get_cmap("jet"))
     m.set_array(np.array([np.min(VM), np.max(VM)]))
-
-    plt.colorbar(m)
+    cbar = plt.colorbar(m)
     plt.scatter(z,y,c=VM, vmin=np.min(VM), vmax=np.max(VM), s=5, cmap="jet")
-
     plt.xlabel(r"-z[m]")
     plt.ylabel(r"y[m]")
-
-    plt.title(str(name))
+    plt.axis('equal')
+    plt.suptitle("Von Mises stress [GPa] at cross section x=1.386 [m] for case: jam_bent",fontsize=16)
     plt.savefig(str(name))
+    ax.autoscale()
 
 #++++++++++++++++++++ Stringer Position (from TE to LE and back in c.c. order)++++++++++
 def calcStPose(ha,ca,nst):   #Verified by Vlad!
@@ -614,6 +619,58 @@ def genVM(x,craft):
 
     return sigma,tau,VM,y,z
 
+def findMaxStress(Zcg,craft):
+    print("Start the loop...")
+    xrange = np.arange(1.38, 1.39, 0.001)
+    maxVM = 0
+    maxZ = 0
+    maxY = 0
+    maxTau = 0
+    maxSigma = 0
+    glmax = 0
+    for x in xrange:
+        # Stress calculations
+        sigma, tau, VM, y, z = genVM(x, craft)
+
+        if (np.abs(VM).any() != VM.any()):
+            print("Error in von Mises calculation, check again!")
+            break
+        localmax = max(VM)
+        if localmax > glmax:
+            maxVM = VM
+            glmax = localmax
+            maxX = x
+            maxZ = z
+            maxY = y
+            maxTau = tau
+            maxSigma = sigma
+
+    # Printing :
+    print("Maximum VM, location: ", glmax / (10 ** 6), maxX)
+    print("Maximum Tau, location: ", max(maxTau) / (10 ** 6), maxX)
+    print("Maximum Sigma, location: ", max(maxSigma) / (10 ** 6), maxX)
+
+    # Plotting :
+    DrawStress(-Zcg - maxZ, maxY, maxVM / (10 ** 9), name="Von Mises")
+    #DrawStress(-Zcg - maxZ, maxY, maxTau / (10 ** 6), name="Shear Stress")
+    #DrawStress(-Zcg - maxZ, maxY, maxSigma / (10 ** 6), name="Normal Stress")
+    plt.show()
+    return
+
+def val_MaxStress(craft):
+    #before running set from EqSolvV3_bending import Sy,Sz,Vy,Vz,My,Mz,T for "bending"
+    #before running set from EqSolvV5_jam_bent import Sy,Sz,Vy,Vz,My,Mz,T for "jam_bent"
+    #before running set from EqSolvV3_jam_straight import Sy,Sz,Vy,Vz,My,Mz,T for "jam_straight"
+    #xMax = 2.661 # for "bending"
+    xMax = 2.659 # for "jam_bent"
+    xVec = np.linspace(0, xMax, 100)
+    vmVec = np.array([])
+    for x in xVec:
+        sigma, tau, VM, y, z = genVM(x,craft)
+        vmVec = np.append(vmVec,max(VM)/10**9)
+    print(vmVec)
+    maxStressAlongX(xVec, vmVec, "jam_straight")
+    return
 
 
 
@@ -668,13 +725,13 @@ class Aircraft:
 #++++++++++++++++++++++++++++ Main +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def main():
-    craft = Aircraft("A320")
+    craft = Aircraft("B737")
     # print("Circumference: \n",calcCircum(craft.ha,craft.ca))
 
-    # stArea = calcStArea(craft.tst,craft.hst,craft.wst)
+    stArea = calcStArea(craft.tst,craft.hst,craft.wst)
     # print("Stringer Area is:\n",stArea)
 
-    # A1,A2 = calcCellArea(craft.ha,craft.ca)
+    A1,A2 = calcCellArea(craft.ha,craft.ca)
     # print("Cell areas are:\n",A1,A2)
 
     pos = calcStPose(craft.ha,craft.ca,craft.nst)
@@ -710,46 +767,14 @@ def main():
     # n = craft.n1 + craft.n2 + craft.n3 +craft.n4  #keep it odd
     # sigma,tau,VM,y,z = genVM(x1,craft)
     # print(max(VM))
+    findMaxStress(Zcg,craft)
+    #val_MaxStress(craft)
 
 
 
 
 
 
-    print("Start the loop...")
-    xrange = np.arange(1.28, 1.29, 0.001)
-    maxVM  = 0
-    maxZ   = 0
-    maxY   = 0
-    maxTau = 0
-    maxSigma = 0
-    glmax = 0
-    for x in xrange:
-        #Stress calculations
-        sigma,tau,VM,y,z = genVM(x,craft)
-
-        if (np.abs(VM).any() != VM.any()):
-            print("Error in von Mises calculation, check again!")
-            break
-        localmax = max(VM)
-        if localmax > glmax:
-            maxVM = VM
-            glmax = localmax
-            maxX  = x
-            maxZ  = z
-            maxY  = y
-            maxTau = tau
-            maxSigma = sigma
-
-    #Printing :
-    print("Maximum VM, location: ", glmax/(10**6),maxX)
-    print("Maximum Tau, location: ", max(maxTau)/(10**6),maxX)
-    print("Maximum Sigma, location: ",max(maxSigma)/(10**6),maxX)
-
-    #Plotting :
-    DrawStress(-Zcg-maxZ,maxY, maxVM/(10**6),name ="Von Mises")
-    DrawStress(-Zcg-maxZ,maxY, maxTau/(10**6,),name="Shear Stress")
-    DrawStress(-Zcg-maxZ,maxY, maxSigma/(10**6),name="Normal Stress")
 
 
 
